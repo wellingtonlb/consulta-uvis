@@ -1,4 +1,15 @@
 # Localizador UVIS e DA - Cidade de São Paulo
+<div class="text-center mb-4">
+        <h3 class="fw-bold text-primary">Localizador UVIS e DA</h3>
+        <p class="text-muted small mb-3">Prefeitura de São Paulo - Consulta de Território</p>
+        
+        <div class="d-inline-block bg-white border border-primary rounded-pill px-3 py-2 shadow-sm">
+            <span class="small text-muted me-1">🧩 Prefere usar sem abrir o site?</span>
+            <a href="LINK_ATUALIZAR" target="_blank" class="fw-bold text-decoration-none text-primary">
+                Baixe a Extensão Oficial ↗
+            </a>
+        </div>
+    </div>
 
 Ferramenta web desenvolvida para facilitar a identificação da **Unidade de Vigilância em Saúde (UVIS)** e do **Distrito Administrativo (DA)** correspondentes a um determinado endereço ou CEP no município de São Paulo.
 
