@@ -12,7 +12,6 @@
         body { background-color: #f4f6f9; }
         .main-card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         
-        /* ALTERAÇÃO AQUI: Aumentei a altura para 650px */
         #map { height: 650px; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; }
         
         .result-row { 
@@ -31,6 +30,16 @@
         .res-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px; }
         .res-value { font-size: 1rem; color: #212529; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
         
+        /* Estilo específico para o campo de email permitir texto longo (quebra de linha) */
+        .res-value-multiline {
+            font-size: 0.9rem;
+            color: #212529;
+            font-weight: 600;
+            white-space: normal;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+
         .btn-copy { 
             background-color: #f8f9fa; 
             border: 1px solid #dee2e6; 
@@ -44,6 +53,7 @@
             cursor: pointer; 
             transition: all 0.2s ease;
             margin-left: 10px;
+            flex-shrink: 0;
         }
         .btn-copy:hover { background-color: #e2e6ea; color: #0d6efd; border-color: #cbd5e0; }
         .btn-copy:active { transform: scale(0.95); }
@@ -55,13 +65,15 @@
 </head>
 <body class="py-4">
 
-<div class="container" style="max-width: 1200px;"> <div class="text-center mb-4">
+<div class="container" style="max-width: 1200px;">
+    <div class="text-center mb-4">
         <h3 class="fw-bold text-primary">📍 Localizador UVIS e DA</h3>
         <p class="text-muted small">Prefeitura de São Paulo - Consulta de Território</p>
     </div>
 
     <div class="row g-4">
-        <div class="col-md-4"> <div class="card main-card mb-3">
+        <div class="col-md-4">
+            <div class="card main-card mb-3">
                 <div class="card-body">
                     <div class="mb-2">
                         <label class="form-label small fw-bold text-secondary">CEP (Busca Automática)</label>
@@ -139,10 +151,21 @@
                     </button>
                 </div>
 
+                <div class="result-row">
+                    <div style="flex: 1; min-width: 0;">
+                        <span class="res-label">Contatos / Email</span>
+                        <span id="res-email" class="res-value-multiline">-</span>
+                    </div>
+                    <button class="btn-copy" onclick="copiar(this, 'res-email')" title="Copiar Email">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
+                    </button>
+                </div>
+
             </div>
         </div>
         
-        <div class="col-md-8"> <div id="map"></div>
+        <div class="col-md-8">
+            <div id="map"></div>
             <p class="text-muted small mt-2 text-end">
                 <span class="badge bg-light text-dark border">Dica</span> Arraste o pino azul para ajustar a localização exata.
             </p>
@@ -198,7 +221,6 @@
             opacity: 1,
             color: baseColor,
             dashArray: '',
-            // ALTERAÇÃO AQUI: Opacidade base bem leve
             fillOpacity: 0.1 
         };
     }
@@ -207,7 +229,6 @@
         const layer = e.target;
         layer.setStyle({
             weight: 4,
-            // ALTERAÇÃO AQUI: Opacidade do hover mais suave
             fillOpacity: 0.3 
         });
         layer.bringToFront();
@@ -343,6 +364,7 @@
         const ponto = turf.point([lon, lat]);
         let candidatosUVIS = [];
         let candidatosDA = [];
+        let candidatosEmail = [];
 
         turf.featureEach(geoJsonData, function (feat) {
             if (turf.booleanPointInPolygon(ponto, feat)) {
@@ -367,6 +389,11 @@
                         if (k.includes('cod') || k.includes('id')) pontos -= 10;
                         candidatosDA.push({ valor: v, pontos: pontos });
                     }
+
+                    // Lógica para capturar o Email/Bloco de contatos
+                    if (k.includes('email')) {
+                        candidatosEmail.push(v);
+                    }
                 }
             }
         });
@@ -376,9 +403,11 @@
 
         const uvisFinal = candidatosUVIS.length > 0 ? candidatosUVIS[0].valor : "Fora da área mapeada";
         const daFinal = candidatosDA.length > 0 ? candidatosDA[0].valor : "Fora da área mapeada";
+        const emailFinal = candidatosEmail.length > 0 ? candidatosEmail[0] : "-";
 
         document.getElementById('res-uvis').innerText = uvisFinal;
         document.getElementById('res-da').innerText = daFinal;
+        document.getElementById('res-email').innerText = emailFinal;
     }
 
     function copiar(btn, elementId) {
