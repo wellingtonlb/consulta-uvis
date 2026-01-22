@@ -124,6 +124,16 @@
 
                 <div class="result-row">
                     <div style="flex: 1; min-width: 0;">
+                        <span class="res-label">Bairro</span>
+                        <span id="res-bairro" class="res-value">-</span>
+                    </div>
+                    <button class="btn-copy" onclick="copiar(this, 'res-bairro')" title="Copiar Bairro">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
+                    </button>
+                </div>
+
+                <div class="result-row">
+                    <div style="flex: 1; min-width: 0;">
                         <span class="res-label">CEP</span>
                         <span id="res-cep" class="res-value">-</span>
                     </div>
@@ -131,6 +141,7 @@
                         <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
                     </button>
                 </div>
+
             </div>
         </div>
         
@@ -155,6 +166,7 @@
 
     let geoJsonData = null;
     let marker = null;
+    let bairroCache = ""; // Para guardar o bairro encontrado pelo CEP
 
     // 1. Carregar Base de Dados Automaticamente
     fetch('./dados.json')
@@ -165,7 +177,7 @@
         })
         .catch(err => alert("Erro ao carregar 'dados.json'. Verifique se o arquivo está no repositório."));
 
-    // 2. Busca Automática de CEP
+    // 2. Busca Automática de CEP (Prioridade para Bairro)
     document.getElementById('cep').addEventListener('blur', function() {
         let cep = this.value.replace(/\D/g, '');
         if (cep.length === 8) {
@@ -174,6 +186,8 @@
                 .then(data => {
                     if (!data.erro) {
                         document.getElementById('logradouro').value = data.logradouro;
+                        bairroCache = data.bairro; // Salva o bairro oficial dos correios
+                        document.getElementById('res-bairro').innerText = data.bairro;
                     }
                 });
         }
@@ -190,9 +204,10 @@
         document.getElementById('loading').classList.remove('d-none');
         document.getElementById('results-area').classList.add('d-none');
 
+        // Adicionei addressdetails=1 para pedir o bairro para o mapa se não tiver CEP
         const query = `${rua}, ${num}, São Paulo, Brasil`;
         
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}`)
             .then(res => res.json())
             .then(data => {
                 document.getElementById('loading').classList.add('d-none');
@@ -201,6 +216,21 @@
                     // Preenche campos visuais
                     document.getElementById('res-log').innerText = rua + (num ? `, ${num}` : '');
                     document.getElementById('res-cep').innerText = cepInput || "Não informado";
+
+                    // Lógica do Bairro: Se veio do CEP (bairroCache), usa ele. Se não, usa o do Mapa.
+                    let bairroMapa = "";
+                    if (data[0].address) {
+                        // Tenta achar o bairro nos dados do mapa (pode vir com vários nomes)
+                        bairroMapa = data[0].address.suburb || data[0].address.neighbourhood || data[0].address.residential || data[0].address.city_district || "";
+                    }
+                    
+                    if (bairroCache) {
+                         document.getElementById('res-bairro').innerText = bairroCache;
+                    } else if (bairroMapa) {
+                        document.getElementById('res-bairro').innerText = bairroMapa;
+                    } else {
+                        document.getElementById('res-bairro').innerText = "Não identificado";
+                    }
 
                     const lat = parseFloat(data[0].lat);
                     const lon = parseFloat(data[0].lon);
@@ -236,33 +266,30 @@
         const ponto = turf.point([lon, lat]);
         let candidatosUVIS = [];
         let candidatosDA = [];
+        let encontrou = false;
 
         turf.featureEach(geoJsonData, function (feat) {
             if (turf.booleanPointInPolygon(ponto, feat)) {
+                encontrou = true;
                 const props = feat.properties;
 
-                // Loop inteligente para pontuar os melhores campos
                 for (const [key, value] of Object.entries(props)) {
                     const k = key.toLowerCase();
                     const v = String(value).trim();
 
-                    // Análise UVIS
                     if (k.includes('uvis')) {
                         let pontos = 0;
-                        if (k.includes('nome') || k.includes('nm') || k.includes('desc')) pontos += 20; // Prioridade máxima para nomes
-                        if (isNaN(v)) pontos += 10; // Texto ganha de número
-                        if (k.includes('cod') || k.includes('id')) pontos -= 10; // Penaliza códigos
-                        
+                        if (k.includes('nome') || k.includes('nm') || k.includes('desc')) pontos += 20; 
+                        if (isNaN(v)) pontos += 10; 
+                        if (k.includes('cod') || k.includes('id')) pontos -= 10; 
                         candidatosUVIS.push({ valor: v, pontos: pontos });
                     }
 
-                    // Análise DA
                     if (k.includes('da') || k.includes('distrito')) {
                         let pontos = 0;
                         if (k.includes('nome') || k.includes('nm') || k.includes('desc')) pontos += 20;
                         if (isNaN(v)) pontos += 10;
                         if (k.includes('cod') || k.includes('id')) pontos -= 10;
-                        
                         candidatosDA.push({ valor: v, pontos: pontos });
                     }
                 }
@@ -273,19 +300,20 @@
         candidatosUVIS.sort((a, b) => b.pontos - a.pontos);
         candidatosDA.sort((a, b) => b.pontos - a.pontos);
 
-        document.getElementById('res-uvis').innerText = candidatosUVIS.length > 0 ? candidatosUVIS[0].valor : "Não encontrado";
-        document.getElementById('res-da').innerText = candidatosDA.length > 0 ? candidatosDA[0].valor : "Não encontrado";
+        const uvisFinal = candidatosUVIS.length > 0 ? candidatosUVIS[0].valor : "Fora da área mapeada";
+        const daFinal = candidatosDA.length > 0 ? candidatosDA[0].valor : "Fora da área mapeada";
+
+        document.getElementById('res-uvis').innerText = uvisFinal;
+        document.getElementById('res-da').innerText = daFinal;
     }
 
     // 5. Função de Copiar
     function copiar(btn, elementId) {
         const texto = document.getElementById(elementId).innerText;
         navigator.clipboard.writeText(texto).then(() => {
-            // Feedback visual
             const originalHTML = btn.innerHTML;
             btn.classList.add('copied');
-            btn.innerHTML = `<svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>`; // Ícone de Check
-            
+            btn.innerHTML = `<svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>`; 
             setTimeout(() => {
                 btn.classList.remove('copied');
                 btn.innerHTML = originalHTML;
