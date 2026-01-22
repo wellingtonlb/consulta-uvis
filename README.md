@@ -6,7 +6,7 @@ Ferramenta web desenvolvida para facilitar a identificação da **Unidade de Vig
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 ### 1. Interface Principal
 Visão geral da ferramenta com mapa interativo e campos de busca.
