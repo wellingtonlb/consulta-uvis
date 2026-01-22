@@ -10,15 +10,15 @@ Ferramenta web desenvolvida para facilitar a identificação da **Unidade de Vig
 
 ### 1. Interface Principal
 Visão geral da ferramenta com mapa interativo e campos de busca.
-![Tela Inicial](./screenshots/home.png)
+![Tela Inicial](./img/home.png)
 
 ### 2. Busca de Endereço
 Ao digitar o CEP ou Logradouro, o sistema localiza o ponto no mapa, traça o território e exibe os dados resumidos na lateral.
-![Exemplo de Busca](./screenshots/busca.png)
+![Exemplo de Busca](./img/busca.png)
 
 ### 3. Ficha Técnica Detalhada
 Ao clicar sobre qualquer área colorida do mapa, uma ficha técnica completa é exibida, contendo contatos, e-mails para notificação (ex: Hepatites) e endereços das unidades de referência.
-![Detalhes da Unidade](./screenshots/detalhes.png)
+![Detalhes da Unidade](./img/detalhes.png)
 
 ---
 
