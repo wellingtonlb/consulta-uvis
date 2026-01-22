@@ -13,7 +13,6 @@
         .main-card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         #map { height: 400px; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; }
         
-        /* Estilo dos Resultados */
         .result-row { 
             display: flex; 
             align-items: center; 
@@ -30,7 +29,6 @@
         .res-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px; }
         .res-value { font-size: 1rem; color: #212529; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
         
-        /* Botão de Copiar */
         .btn-copy { 
             background-color: #f8f9fa; 
             border: 1px solid #dee2e6; 
@@ -158,7 +156,7 @@
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
 
 <script>
-    // Inicialização do Mapa
+  
     const map = L.map('map').setView([-23.5505, -46.6333], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap'
@@ -168,7 +166,6 @@
     let marker = null;
     let bairroCache = ""; // Para guardar o bairro encontrado pelo CEP
 
-    // 1. Carregar Base de Dados Automaticamente
     fetch('./dados.json')
         .then(response => response.json())
         .then(data => {
@@ -177,7 +174,7 @@
         })
         .catch(err => alert("Erro ao carregar 'dados.json'. Verifique se o arquivo está no repositório."));
 
-    // 2. Busca Automática de CEP (Prioridade para Bairro)
+
     document.getElementById('cep').addEventListener('blur', function() {
         let cep = this.value.replace(/\D/g, '');
         if (cep.length === 8) {
@@ -193,7 +190,6 @@
         }
     });
 
-    // 3. Função Principal de Busca
     function buscarEndereco() {
         const rua = document.getElementById('logradouro').value;
         const num = document.getElementById('numero').value;
@@ -204,7 +200,6 @@
         document.getElementById('loading').classList.remove('d-none');
         document.getElementById('results-area').classList.add('d-none');
 
-        // Adicionei addressdetails=1 para pedir o bairro para o mapa se não tiver CEP
         const query = `${rua}, ${num}, São Paulo, Brasil`;
         
         fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}`)
@@ -213,11 +208,10 @@
                 document.getElementById('loading').classList.add('d-none');
                 
                 if (data.length > 0) {
-                    // Preenche campos visuais
+
                     document.getElementById('res-log').innerText = rua + (num ? `, ${num}` : '');
                     document.getElementById('res-cep').innerText = cepInput || "Não informado";
 
-                    // Lógica do Bairro: Se veio do CEP (bairroCache), usa ele. Se não, usa o do Mapa.
                     let bairroMapa = "";
                     if (data[0].address) {
                         // Tenta achar o bairro nos dados do mapa (pode vir com vários nomes)
@@ -259,7 +253,7 @@
         document.getElementById('results-area').classList.remove('d-none');
     }
 
-    // 4. Lógica "Inteligente" de Extração de Dados
+  
     function verificarPoligono(lat, lon) {
         if (!geoJsonData) return;
 
@@ -296,7 +290,7 @@
             }
         });
 
-        // Ordena para pegar o maior 'score'
+  
         candidatosUVIS.sort((a, b) => b.pontos - a.pontos);
         candidatosDA.sort((a, b) => b.pontos - a.pontos);
 
@@ -307,7 +301,7 @@
         document.getElementById('res-da').innerText = daFinal;
     }
 
-    // 5. Função de Copiar
+ 
     function copiar(btn, elementId) {
         const texto = document.getElementById(elementId).innerText;
         navigator.clipboard.writeText(texto).then(() => {
@@ -324,3 +318,4 @@
 
 </body>
 </html>
+
