@@ -11,7 +11,9 @@
     <style>
         body { background-color: #f4f6f9; }
         .main-card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        #map { height: 400px; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; }
+        
+        /* ALTERAÇÃO AQUI: Aumentei a altura para 650px */
+        #map { height: 650px; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; }
         
         .result-row { 
             display: flex; 
@@ -53,15 +55,13 @@
 </head>
 <body class="py-4">
 
-<div class="container" style="max-width: 900px;">
-    <div class="text-center mb-4">
+<div class="container" style="max-width: 1200px;"> <div class="text-center mb-4">
         <h3 class="fw-bold text-primary">📍 Localizador UVIS e DA</h3>
         <p class="text-muted small">Prefeitura de São Paulo - Consulta de Território</p>
     </div>
 
     <div class="row g-4">
-        <div class="col-md-5">
-            <div class="card main-card mb-3">
+        <div class="col-md-4"> <div class="card main-card mb-3">
                 <div class="card-body">
                     <div class="mb-2">
                         <label class="form-label small fw-bold text-secondary">CEP (Busca Automática)</label>
@@ -142,8 +142,7 @@
             </div>
         </div>
         
-        <div class="col-md-7">
-            <div id="map"></div>
+        <div class="col-md-8"> <div id="map"></div>
             <p class="text-muted small mt-2 text-end">
                 <span class="badge bg-light text-dark border">Dica</span> Arraste o pino azul para ajustar a localização exata.
             </p>
@@ -199,7 +198,8 @@
             opacity: 1,
             color: baseColor,
             dashArray: '',
-            fillOpacity: 0.2
+            // ALTERAÇÃO AQUI: Opacidade base bem leve
+            fillOpacity: 0.1 
         };
     }
 
@@ -207,7 +207,8 @@
         const layer = e.target;
         layer.setStyle({
             weight: 4,
-            fillOpacity: 0.5
+            // ALTERAÇÃO AQUI: Opacidade do hover mais suave
+            fillOpacity: 0.3 
         });
         layer.bringToFront();
         if (marker) marker.setZIndexOffset(1000);
