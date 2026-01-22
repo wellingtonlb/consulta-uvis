@@ -12,63 +12,55 @@
         body { background-color: #f4f6f9; }
         .main-card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         
-        #map { height: 75vh; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; }
+        #map { height: 80vh; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; }
         
-        .result-row { 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            background: #fff; 
-            border: 1px solid #e9ecef; 
-            padding: 8px 12px; 
-            border-radius: 6px; 
-            margin-bottom: 8px;
-            transition: 0.2s;
-        }
-        .result-row:hover { border-color: #cbd5e0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        
-        .res-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px; }
-        .res-value { font-size: 1rem; color: #212529; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
-        
-        .email-block {
-            display: block;
-            margin-top: 5px;
+        /* Estilo para a caixa de endereço (fixa) */
+        .address-box {
+            background: #e9ecef;
+            border-left: 4px solid #6c757d;
             padding: 10px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
+            border-radius: 4px;
+            margin-bottom: 15px;
         }
+
+        /* Estilo para a caixa de território (dinâmica) */
+        .territory-box {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 4px solid #0d6efd;
+        }
+
+        .data-row {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #eee;
+        }
+        .data-row:last-child { border-bottom: none; }
+
+        .res-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 700; display: block; }
+        .res-value { font-size: 0.95rem; color: #212529; font-weight: 600; word-break: break-word; }
         
-        .res-value-multiline {
+        /* Bloco de texto longo (email/obs) */
+        .long-text-block {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
             font-size: 0.85rem;
-            color: #212529;
-            font-weight: 600;
             white-space: pre-wrap;
-            word-break: break-word;
-            line-height: 1.5;
+            margin-top: 5px;
+            border: 1px solid #eee;
         }
 
         .btn-copy { 
-            background-color: #f8f9fa; 
-            border: 1px solid #dee2e6; 
-            color: #495057; 
-            width: 36px; 
-            height: 36px; 
-            border-radius: 6px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
             cursor: pointer; 
-            transition: all 0.2s ease;
-            margin-left: 10px;
-            flex-shrink: 0;
+            color: #6c757d; 
+            float: right;
+            transition: 0.2s;
         }
-        .btn-copy:hover { background-color: #e2e6ea; color: #0d6efd; border-color: #cbd5e0; }
-        .btn-copy:active { transform: scale(0.95); }
-        .btn-copy.copied { background-color: #198754; color: white; border-color: #198754; }
-
-        .border-uvis { border-left: 4px solid #0d6efd; }
-        .border-da { border-left: 4px solid #198754; }
+        .btn-copy:hover { color: #0d6efd; }
     </style>
 </head>
 <body class="py-4">
@@ -80,11 +72,12 @@
     </div>
 
     <div class="row g-4">
-        <div class="col-md-3">
+        <div class="col-md-4 col-lg-3">
+            
             <div class="card main-card mb-3">
                 <div class="card-body">
                     <div class="mb-2">
-                        <label class="form-label small fw-bold text-secondary">CEP (Busca Automática)</label>
+                        <label class="form-label small fw-bold text-secondary">CEP</label>
                         <input type="text" class="form-control" id="cep" placeholder="00000-000" maxlength="9">
                     </div>
                     <div class="row g-2 mb-2">
@@ -97,85 +90,59 @@
                             <input type="text" class="form-control" id="numero" placeholder="Nº">
                         </div>
                     </div>
-                    <button class="btn btn-primary w-100 fw-bold mt-2" onclick="buscarEndereco()">🔍 CONSULTAR MAPA</button>
+                    <button class="btn btn-primary w-100 fw-bold mt-2" onclick="buscarEndereco()">🔍 CONSULTAR</button>
                 </div>
             </div>
 
             <div id="loading" class="text-center d-none py-3">
                 <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
-                <span class="ms-2 small text-muted">Consultando bases...</span>
+                <span class="ms-2 small text-muted">Processando...</span>
             </div>
 
             <div id="results-area" class="d-none animate__animated animate__fadeIn">
-                <h6 class="fw-bold text-secondary mb-3 small">DADOS DO TERRITÓRIO</h6>
                 
-                <div class="result-row border-uvis">
-                    <div style="flex: 1; min-width: 0;">
-                        <span class="res-label">UVIS (Vigilância em Saúde)</span>
-                        <span id="res-uvis" class="res-value">-</span>
+                <h6 class="fw-bold text-secondary small mb-2">📍 ENDEREÇO LOCALIZADO</h6>
+                <div class="address-box">
+                    <div class="data-row">
+                        <span class="res-label">Logradouro</span>
+                        <span id="addr-log" class="res-value">-</span>
                     </div>
-                    <button class="btn-copy" onclick="copiar(this, 'res-uvis')" title="Copiar UVIS">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
-                    </button>
+                    <div class="data-row">
+                        <span class="res-label">Bairro / CEP</span>
+                        <span id="addr-bairro-cep" class="res-value">-</span>
+                    </div>
                 </div>
 
-                <div class="result-row border-da">
-                    <div style="flex: 1; min-width: 0;">
+                <h6 class="fw-bold text-primary small mb-2">🏥 DADOS DO TERRITÓRIO (UVIS/DA)</h6>
+                <div class="territory-box">
+                    <div class="data-row">
+                        <span class="res-label">UVIS (Unidade de Vigilância)</span>
+                        <span id="terr-uvis" class="res-value">-</span>
+                         <span class="btn-copy" onclick="copiar('terr-uvis')" title="Copiar">📋</span>
+                    </div>
+                    
+                    <div class="data-row">
                         <span class="res-label">DA (Distrito Administrativo)</span>
-                        <span id="res-da" class="res-value">-</span>
+                        <span id="terr-da" class="res-value">-</span>
+                        <span class="btn-copy" onclick="copiar('terr-da')" title="Copiar">📋</span>
                     </div>
-                    <button class="btn-copy" onclick="copiar(this, 'res-da')" title="Copiar DA">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
-                    </button>
-                </div>
 
-                <div class="result-row">
-                    <div style="flex: 1; min-width: 0;">
-                        <span class="res-label">Logradouro / Local</span>
-                        <span id="res-log" class="res-value">-</span>
+                    <div class="mt-3">
+                        <span class="res-label">Contatos e Detalhes Completos:</span>
+                        <div id="terr-full-info" class="long-text-block">-</div>
+                        <div class="text-end mt-1">
+                             <button class="btn btn-sm btn-outline-secondary" onclick="copiar('terr-full-info')">Copiar Tudo</button>
+                        </div>
                     </div>
-                    <button class="btn-copy" onclick="copiar(this, 'res-log')" title="Copiar Logradouro">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
-                    </button>
-                </div>
-
-                <div class="result-row">
-                    <div style="flex: 1; min-width: 0;">
-                        <span class="res-label">Bairro</span>
-                        <span id="res-bairro" class="res-value">-</span>
-                    </div>
-                    <button class="btn-copy" onclick="copiar(this, 'res-bairro')" title="Copiar Bairro">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
-                    </button>
-                </div>
-
-                <div class="result-row">
-                    <div style="flex: 1; min-width: 0;">
-                        <span class="res-label">CEP</span>
-                        <span id="res-cep" class="res-value">-</span>
-                    </div>
-                    <button class="btn-copy" onclick="copiar(this, 'res-cep')" title="Copiar CEP">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
-                    </button>
-                </div>
-
-                <div class="email-block">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <span class="res-label">Contatos / Email</span>
-                        <button class="btn-copy" style="margin-top: -5px; margin-right: -5px;" onclick="copiar(this, 'res-email')" title="Copiar Tudo">
-                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
-                        </button>
-                    </div>
-                    <span id="res-email" class="res-value-multiline mt-2 d-block">-</span>
                 </div>
 
             </div>
         </div>
         
-        <div class="col-md-9">
+        <div class="col-md-8 col-lg-9">
             <div id="map"></div>
             <p class="text-muted small mt-2 text-end">
-                <span class="badge bg-light text-dark border">Dica</span> Clique em uma região para ver os detalhes na lateral esquerda.
+                <span class="badge bg-light text-dark border">Dica</span> Clique em qualquer região colorida para ver os dados detalhados na lateral.
             </p>
         </div>
     </div>
@@ -204,6 +171,7 @@
     let bairroCache = "";
     let geoJsonLayer = null;
 
+    // Cores distintas para as regiões
     const distinctColors = [
         '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', 
         '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', 
@@ -222,16 +190,14 @@
 
     function styleFeature(feature) {
         let nomeParaCor = "default";
-        const props = feature.properties;
-        for (const [key, value] of Object.entries(props)) {
+        // Procura alguma propriedade UVIS para definir a cor
+        for (const [key, value] of Object.entries(feature.properties)) {
             if (key.toLowerCase().includes('uvis')) {
                 nomeParaCor = value;
                 break;
             }
         }
-        
         const baseColor = getColor(String(nomeParaCor));
-
         return {
             fillColor: baseColor,
             weight: 2,
@@ -244,10 +210,7 @@
 
     function highlightFeature(e) {
         const layer = e.target;
-        layer.setStyle({
-            weight: 4,
-            fillOpacity: 0.3 
-        });
+        layer.setStyle({ weight: 4, fillOpacity: 0.3 });
         layer.bringToFront();
         if (marker) marker.setZIndexOffset(1000);
     }
@@ -256,56 +219,28 @@
         geoJsonLayer.resetStyle(e.target);
     }
 
+    // --- LÓGICA DE CLIQUE NO MAPA ---
     function onFeatureClick(e) {
         map.fitBounds(e.target.getBounds());
+        // Atualiza APENAS a caixa de território
+        atualizarBlocoTerritorio(e.target.feature.properties);
         
-        const props = e.target.feature.properties;
-        let uvis = "-", da = "-", email = "-";
-        let foundSpecificEmail = false;
-
-        for (const [key, value] of Object.entries(props)) {
-            const k = key.toLowerCase();
-            const v = String(value).trim();
-
-            if (k.includes('uvis') && !k.includes('cod') && !k.includes('id')) {
-                 uvis = v;
-            }
-            if ((k.includes('da') || k.includes('distrito')) && !k.includes('cod') && !k.includes('id')) {
-                 da = v;
-            }
-
-            if (k === 'email') {
-                email = v;
-                foundSpecificEmail = true;
-            } else if (k.includes('email') && !foundSpecificEmail) {
-                email = v;
-            }
-        }
-
-        document.getElementById('res-uvis').innerText = uvis;
-        document.getElementById('res-da').innerText = da;
-        document.getElementById('res-email').innerText = email;
-        document.getElementById('res-log').innerText = "Região Selecionada no Mapa";
-        document.getElementById('res-bairro').innerText = "-";
-        document.getElementById('res-cep').innerText = "-";
-        
+        // Garante que a área de resultados esteja visível
         document.getElementById('results-area').classList.remove('d-none');
     }
 
     function onEachFeature(feature, layer) {
-        let nomeUVIS = "";
+        // Tooltip simples com nome ao passar o mouse
+        let nomeTooltip = "";
         for (const [key, value] of Object.entries(feature.properties)) {
             if (key.toLowerCase().includes('uvis')) {
-                nomeUVIS = value;
+                nomeTooltip = value;
                 break;
             }
         }
-
-        layer.bindTooltip(nomeUVIS, {
-            permanent: false, 
-            direction: "center",
-            className: "bg-transparent border-0 text-dark fw-bold"
-        });
+        if(nomeTooltip) {
+            layer.bindTooltip(nomeTooltip, { permanent: false, direction: "center", className: "bg-light text-dark border px-1" });
+        }
 
         layer.on({
             mouseover: highlightFeature,
@@ -314,11 +249,11 @@
         });
     }
 
+    // --- CARREGAMENTO INICIAL ---
     fetch('./dados.json')
         .then(response => response.json())
         .then(data => {
             geoJsonData = data;
-            
             geoJsonLayer = L.geoJson(data, {
                 style: styleFeature,
                 onEachFeature: onEachFeature
@@ -327,14 +262,14 @@
             if(geoJsonLayer.getBounds().isValid()){
                 map.fitBounds(geoJsonLayer.getBounds());
             }
-
-            console.log("Base de dados carregada e desenhada.");
+            console.log("Base carregada.");
         })
         .catch(err => {
             console.error(err);
-            alert("Erro ao carregar 'dados.json'. Verifique se o arquivo está no repositório.");
+            alert("Erro ao carregar 'dados.json'.");
         });
 
+    // --- BUSCA DE CEP ---
     document.getElementById('cep').addEventListener('blur', function() {
         let cep = this.value.replace(/\D/g, '');
         if (cep.length === 8) {
@@ -344,18 +279,18 @@
                     if (!data.erro) {
                         document.getElementById('logradouro').value = data.logradouro;
                         bairroCache = data.bairro;
-                        document.getElementById('res-bairro').innerText = data.bairro;
                     }
                 });
         }
     });
 
+    // --- FUNÇÃO DE CONSULTA PRINCIPAL ---
     function buscarEndereco() {
         const rua = document.getElementById('logradouro').value;
         const num = document.getElementById('numero').value;
-        const cepInput = document.getElementById('cep').value;
+        const cepVal = document.getElementById('cep').value;
 
-        if (!rua) { alert("Por favor, preencha o logradouro."); return; }
+        if (!rua) { alert("Preencha o logradouro."); return; }
 
         document.getElementById('loading').classList.remove('d-none');
         document.getElementById('results-area').classList.add('d-none');
@@ -368,118 +303,97 @@
                 document.getElementById('loading').classList.add('d-none');
                 
                 if (data.length > 0) {
-                    document.getElementById('res-log').innerText = rua + (num ? `, ${num}` : '');
-                    let cepEncontrado = cepInput;
-                    if (!cepEncontrado && data[0].address && data[0].address.postcode) {
-                        cepEncontrado = data[0].address.postcode;
-                    }
-                    document.getElementById('res-cep').innerText = cepEncontrado || "Não informado";
-                    
-                    let bairroMapa = "";
-                    if (data[0].address) {
-                        bairroMapa = data[0].address.suburb || data[0].address.neighbourhood || data[0].address.residential || data[0].address.city_district || "";
-                    }
-                    
-                    if (bairroCache) {
-                         document.getElementById('res-bairro').innerText = bairroCache;
-                    } else if (bairroMapa) {
-                        document.getElementById('res-bairro').innerText = bairroMapa;
-                    } else {
-                        document.getElementById('res-bairro').innerText = "Não identificado";
-                    }
+                    // 1. Atualiza Bloco de Endereço (Fixo)
+                    const enderecoCompleto = rua + (num ? `, ${num}` : '');
+                    let bairroFinal = bairroCache || (data[0].address ? (data[0].address.suburb || data[0].address.neighbourhood || "Não identificado") : "-");
+                    let cepFinal = cepVal || (data[0].address ? data[0].address.postcode : "-");
 
+                    document.getElementById('addr-log').innerText = enderecoCompleto;
+                    document.getElementById('addr-bairro-cep').innerText = `${bairroFinal} - ${cepFinal}`;
+
+                    // 2. Atualiza Mapa e Território
                     const lat = parseFloat(data[0].lat);
                     const lon = parseFloat(data[0].lon);
                     
-                    atualizarMapa(lat, lon);
+                    if (marker) map.removeLayer(marker);
+                    marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+                    marker.setZIndexOffset(1000);
+                    map.setView([lat, lon], 16);
+                    
+                    // Se o pino for arrastado, recalcula só o território
+                    marker.on('dragend', function(e) {
+                        verificarPoligono(e.target.getLatLng().lat, e.target.getLatLng().lng);
+                    });
+
+                    // Verifica onde caiu
+                    verificarPoligono(lat, lon);
+                    
+                    document.getElementById('results-area').classList.remove('d-none');
+
                 } else {
-                    alert("Endereço não encontrado no mapa.");
+                    alert("Endereço não encontrado.");
                 }
             })
             .catch(() => {
                 document.getElementById('loading').classList.add('d-none');
-                alert("Erro de conexão com o serviço de mapa.");
+                alert("Erro de conexão.");
             });
     }
 
-    function atualizarMapa(lat, lon) {
-        if (marker) map.removeLayer(marker);
-        marker = L.marker([lat, lon], { draggable: true }).addTo(map);
-        marker.setZIndexOffset(1000);
-        map.setView([lat, lon], 16);
-        
-        marker.on('dragend', function(e) {
-            verificarPoligono(e.target.getLatLng().lat, e.target.getLatLng().lng);
-        });
-
-        verificarPoligono(lat, lon);
-        document.getElementById('results-area').classList.remove('d-none');
-    }
-
+    // --- FUNÇÕES AUXILIARES DE TERRITÓRIO ---
     function verificarPoligono(lat, lon) {
         if (!geoJsonData) return;
-
         const ponto = turf.point([lon, lat]);
-        let candidatosUVIS = [];
-        let candidatosDA = [];
-        let emailFinal = "-";
-
+        
+        let encontrou = false;
         turf.featureEach(geoJsonData, function (feat) {
             if (turf.booleanPointInPolygon(ponto, feat)) {
-                const props = feat.properties;
-                let foundSpecificEmail = false;
-
-                for (const [key, value] of Object.entries(props)) {
-                    const k = key.toLowerCase();
-                    const v = String(value).trim();
-
-                    if (k.includes('uvis')) {
-                        let pontos = 0;
-                        if (k.includes('nome') || k.includes('nm') || k.includes('desc')) pontos += 20; 
-                        if (isNaN(v)) pontos += 10; 
-                        if (k.includes('cod') || k.includes('id')) pontos -= 10; 
-                        candidatosUVIS.push({ valor: v, pontos: pontos });
-                    }
-
-                    if (k.includes('da') || k.includes('distrito')) {
-                        let pontos = 0;
-                        if (k.includes('nome') || k.includes('nm') || k.includes('desc')) pontos += 20;
-                        if (isNaN(v)) pontos += 10;
-                        if (k.includes('cod') || k.includes('id')) pontos -= 10;
-                        candidatosDA.push({ valor: v, pontos: pontos });
-                    }
-
-                    if (k === 'email') {
-                        emailFinal = v;
-                        foundSpecificEmail = true;
-                    } else if (k.includes('email') && !foundSpecificEmail) {
-                        emailFinal = v;
-                    }
-                }
+                atualizarBlocoTerritorio(feat.properties);
+                encontrou = true;
             }
         });
 
-        candidatosUVIS.sort((a, b) => b.pontos - a.pontos);
-        candidatosDA.sort((a, b) => b.pontos - a.pontos);
-
-        const uvisFinal = candidatosUVIS.length > 0 ? candidatosUVIS[0].valor : "Fora da área mapeada";
-        const daFinal = candidatosDA.length > 0 ? candidatosDA[0].valor : "Fora da área mapeada";
-
-        document.getElementById('res-uvis').innerText = uvisFinal;
-        document.getElementById('res-da').innerText = daFinal;
-        document.getElementById('res-email').innerText = emailFinal;
+        if (!encontrou) {
+            document.getElementById('terr-uvis').innerText = "Fora da área mapeada";
+            document.getElementById('terr-da').innerText = "-";
+            document.getElementById('terr-full-info').innerText = "-";
+        }
     }
 
-    function copiar(btn, elementId) {
+    function atualizarBlocoTerritorio(props) {
+        let uvis = "-", da = "-";
+        let fullInfo = [];
+
+        // Varre todas as propriedades para montar o bloco
+        for (const [key, value] of Object.entries(props)) {
+            const k = key.toLowerCase();
+            const val = String(value).trim();
+            
+            // Identifica UVIS e DA para destaque
+            if (k.includes('uvis') && !k.includes('cod') && !k.includes('id') && !k.includes('end') && !k.includes('tel')) {
+                 uvis = val;
+            }
+            if ((k.includes('da') || k.includes('distrito')) && !k.includes('cod') && !k.includes('id')) {
+                 da = val;
+            }
+
+            // Adiciona tudo ao "blocão" de detalhes
+            // Formato: Chave: Valor
+            if (val && val !== "null" && val !== "undefined") {
+                 fullInfo.push(`${key}: ${val}`);
+            }
+        }
+
+        document.getElementById('terr-uvis').innerText = uvis;
+        document.getElementById('terr-da').innerText = da;
+        document.getElementById('terr-full-info').innerText = fullInfo.join("\n");
+    }
+
+    function copiar(elementId) {
         const texto = document.getElementById(elementId).innerText;
         navigator.clipboard.writeText(texto).then(() => {
-            const originalHTML = btn.innerHTML;
-            btn.classList.add('copied');
-            btn.innerHTML = `<svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>`; 
-            setTimeout(() => {
-                btn.classList.remove('copied');
-                btn.innerHTML = originalHTML;
-            }, 2000);
+            // Feedback visual rápido
+            alert("Copiado!"); 
         });
     }
 </script>
