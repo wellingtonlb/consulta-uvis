@@ -65,4 +65,9 @@ Ao clicar sobre qualquer área colorida do mapa, uma ficha técnica completa é 
 
 ---
 
+## 📄 Licença
+
+Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
+
 [Wellingtonlb](https://github.com/wellingtonlb)
+
