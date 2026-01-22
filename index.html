@@ -210,8 +210,12 @@
                 if (data.length > 0) {
 
                     document.getElementById('res-log').innerText = rua + (num ? `, ${num}` : '');
-                    document.getElementById('res-cep').innerText = cepInput || "Não informado";
-
+                    let cepEncontrado = cepInput;
+                    if (!cepEncontrado && data[0].address && data[0].address.postcode) {
+                        cepEncontrado = data[0].address.postcode;
+                    }
+                    document.getElementById('res-cep').innerText = cepEncontrado || "Não informado";
+                    
                     let bairroMapa = "";
                     if (data[0].address) {
                         // Tenta achar o bairro nos dados do mapa (pode vir com vários nomes)
@@ -318,4 +322,5 @@
 
 </body>
 </html>
+
 
