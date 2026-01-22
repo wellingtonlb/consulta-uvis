@@ -10,88 +10,147 @@
     
     <style>
         body { background-color: #f4f6f9; }
-        .main-card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .main-card { border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         
-        #map { height: 80vh; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; }
+        #map { height: 85vh; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; }
         
-        /* Estilo para a caixa de endereço (fixa) */
-        .address-box {
-            background: #e9ecef;
-            border-left: 4px solid #6c757d;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 15px;
+        /* Estilos dos Resultados de Busca (Pequenos e compactos) */
+        .result-row { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background: #fff; 
+            border: 1px solid #e9ecef; 
+            padding: 6px 10px; 
+            border-radius: 6px; 
+            margin-bottom: 6px;
         }
-
-        /* Estilo para a caixa de território (dinâmica) */
-        .territory-box {
-            background: #fff;
+        
+        .res-label { font-size: 0.7rem; color: #6c757d; text-transform: uppercase; font-weight: 700; display: block; }
+        .res-value { font-size: 0.95rem; color: #212529; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+        
+        /* Novo Bloco de Detalhes da Unidade (Onde vai o texto completo) */
+        .detail-card {
+            background-color: #fff;
             border: 1px solid #dee2e6;
             border-radius: 8px;
             padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            border-left: 4px solid #0d6efd;
+            margin-top: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-left: 5px solid #6610f2; /* Cor roxa para diferenciar */
         }
 
-        .data-row {
-            margin-bottom: 8px;
-            padding-bottom: 8px;
-            border-bottom: 1px dashed #eee;
+        .detail-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #6610f2;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
         }
-        .data-row:last-child { border-bottom: none; }
 
-        .res-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 700; display: block; }
-        .res-value { font-size: 0.95rem; color: #212529; font-weight: 600; word-break: break-word; }
-        
-        /* Bloco de texto longo (email/obs) */
-        .long-text-block {
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 6px;
+        .detail-content {
             font-size: 0.85rem;
-            white-space: pre-wrap;
-            margin-top: 5px;
-            border: 1px solid #eee;
+            color: #333;
+            white-space: pre-wrap; /* Mantém a formatação do texto */
+            line-height: 1.6;
         }
 
         .btn-copy { 
+            background-color: #f8f9fa; 
+            border: 1px solid #dee2e6; 
+            color: #495057; 
+            width: 30px; 
+            height: 30px; 
+            border-radius: 4px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
             cursor: pointer; 
-            color: #6c757d; 
-            float: right;
-            transition: 0.2s;
+            transition: all 0.2s ease;
+            margin-left: 8px;
+            flex-shrink: 0;
         }
-        .btn-copy:hover { color: #0d6efd; }
+        .btn-copy:hover { background-color: #e2e6ea; color: #0d6efd; border-color: #cbd5e0; }
+        .btn-copy.copied { background-color: #198754; color: white; border-color: #198754; }
+
+        .border-uvis { border-left: 3px solid #0d6efd; }
+        .border-da { border-left: 3px solid #198754; }
     </style>
 </head>
-<body class="py-4">
+<body class="py-3">
 
-<div class="container-fluid px-4">
-    <div class="text-center mb-4">
-        <h3 class="fw-bold text-primary">📍 Localizador UVIS e DA</h3>
-        <p class="text-muted small">Prefeitura de São Paulo - Consulta de Território</p>
-    </div>
-
-    <div class="row g-4">
-        <div class="col-md-4 col-lg-3">
+<div class="container-fluid px-3">
+    
+    <div class="row g-3">
+        <div class="col-md-3 d-flex flex-column" style="max-height: 95vh; overflow-y: auto;">
             
+            <div class="text-center mb-3">
+                <h5 class="fw-bold text-primary mb-0">📍 Localizador UVIS e DA</h5>
+            </div>
+
             <div class="card main-card mb-3">
-                <div class="card-body">
+                <div class="card-body p-3">
                     <div class="mb-2">
-                        <label class="form-label small fw-bold text-secondary">CEP</label>
-                        <input type="text" class="form-control" id="cep" placeholder="00000-000" maxlength="9">
+                        <label class="form-label small fw-bold text-secondary mb-1">CEP</label>
+                        <input type="text" class="form-control form-control-sm" id="cep" placeholder="00000-000" maxlength="9">
                     </div>
                     <div class="row g-2 mb-2">
                         <div class="col-8">
-                            <label class="form-label small fw-bold text-secondary">Logradouro *</label>
-                            <input type="text" class="form-control" id="logradouro" placeholder="Nome da rua">
+                            <label class="form-label small fw-bold text-secondary mb-1">Logradouro</label>
+                            <input type="text" class="form-control form-control-sm" id="logradouro" placeholder="Nome da rua">
                         </div>
                         <div class="col-4">
-                            <label class="form-label small fw-bold text-secondary">Número</label>
-                            <input type="text" class="form-control" id="numero" placeholder="Nº">
+                            <label class="form-label small fw-bold text-secondary mb-1">Número</label>
+                            <input type="text" class="form-control form-control-sm" id="numero" placeholder="Nº">
                         </div>
                     </div>
-                    <button class="btn btn-primary w-100 fw-bold mt-2" onclick="buscarEndereco()">🔍 CONSULTAR</button>
+                    <button class="btn btn-primary btn-sm w-100 fw-bold" onclick="buscarEndereco()">🔍 CONSULTAR</button>
                 </div>
+            </div>
+
+            <div id="search-results" class="d-none animate__animated animate__fadeIn">
+                <h6 class="fw-bold text-secondary small mb-2">ENDEREÇO LOCALIZADO</h6>
+                
+                <div class="result-row border-uvis">
+                    <div style="flex: 1; min-width: 0;">
+                        <span class="res-label">UVIS (Referência)</span>
+                        <span id="res-uvis" class="res-value">-</span>
+                    </div>
+                    <button class="btn-copy" onclick="copiar(this, 'res-uvis')">📋</button>
+                </div>
+
+                <div class="result-row border-da">
+                    <div style="flex: 1; min-width: 0;">
+                        <span class="res-label">Distrito Administrativo</span>
+                        <span id="res-da" class="res-value">-</span>
+                    </div>
+                    <button class="btn-copy" onclick="copiar(this, 'res-da')">📋</button>
+                </div>
+
+                <div class="result-row">
+                    <div style="flex: 1; min-width: 0;">
+                        <span class="res-label">Endereço Pesquisado</span>
+                        <span id="res-log" class="res-value">-</span>
+                    </div>
+                    <button class="btn-copy" onclick="copiar(this, 'res-log')">📋</button>
+                </div>
+
+                <div class="result-row">
+                    <div style="flex: 1; min-width: 0;">
+                        <span class="res-label">CEP</span>
+                        <span id="res-cep" class="res-value">-</span>
+                    </div>
+                    <button class="btn-copy" onclick="copiar(this, 'res-cep')">📋</button>
+                </div>
+            </div>
+
+            <div id="region-details" class="detail-card d-none animate__animated animate__fadeInUp">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="detail-title mb-0">FICHA TÉCNICA DA UNIDADE</span>
+                    <button class="btn btn-sm btn-outline-secondary py-0" style="font-size: 0.7rem;" onclick="copiarTextoDetalhes(this)">Copiar Tudo</button>
+                </div>
+                <div id="detail-content" class="detail-content">-</div>
             </div>
 
             <div id="loading" class="text-center d-none py-3">
@@ -99,62 +158,18 @@
                 <span class="ms-2 small text-muted">Processando...</span>
             </div>
 
-            <div id="results-area" class="d-none animate__animated animate__fadeIn">
-                
-                <h6 class="fw-bold text-secondary small mb-2">📍 ENDEREÇO LOCALIZADO</h6>
-                <div class="address-box">
-                    <div class="data-row">
-                        <span class="res-label">Logradouro</span>
-                        <span id="addr-log" class="res-value">-</span>
-                    </div>
-                    <div class="data-row">
-                        <span class="res-label">Bairro / CEP</span>
-                        <span id="addr-bairro-cep" class="res-value">-</span>
-                    </div>
-                </div>
-
-                <h6 class="fw-bold text-primary small mb-2">🏥 DADOS DO TERRITÓRIO (UVIS/DA)</h6>
-                <div class="territory-box">
-                    <div class="data-row">
-                        <span class="res-label">UVIS (Unidade de Vigilância)</span>
-                        <span id="terr-uvis" class="res-value">-</span>
-                         <span class="btn-copy" onclick="copiar('terr-uvis')" title="Copiar">📋</span>
-                    </div>
-                    
-                    <div class="data-row">
-                        <span class="res-label">DA (Distrito Administrativo)</span>
-                        <span id="terr-da" class="res-value">-</span>
-                        <span class="btn-copy" onclick="copiar('terr-da')" title="Copiar">📋</span>
-                    </div>
-
-                    <div class="mt-3">
-                        <span class="res-label">Contatos e Detalhes Completos:</span>
-                        <div id="terr-full-info" class="long-text-block">-</div>
-                        <div class="text-end mt-1">
-                             <button class="btn btn-sm btn-outline-secondary" onclick="copiar('terr-full-info')">Copiar Tudo</button>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+            <footer class="mt-auto pt-3 text-center">
+                <a href="privacidade.html" class="small text-muted text-decoration-none">Política de Privacidade</a>
+            </footer>
         </div>
         
-        <div class="col-md-8 col-lg-9">
+        <div class="col-md-9">
             <div id="map"></div>
-            <p class="text-muted small mt-2 text-end">
-                <span class="badge bg-light text-dark border">Dica</span> Clique em qualquer região colorida para ver os dados detalhados na lateral.
+            <p class="text-muted small mt-1 text-end mb-0">
+                <span class="badge bg-light text-dark border">Dica</span> Arraste o pino para ajustar. Clique em qualquer área colorida para ver a ficha técnica.
             </p>
         </div>
     </div>
-    
-    <footer class="text-center mt-5 mb-4">
-        <hr class="w-50 mx-auto text-secondary" style="opacity: 0.2;">
-        <p class="small text-muted">
-            Ferramenta de consulta territorial - Prefeitura de SP<br>
-            <a href="privacidade.html" class="text-decoration-none text-primary fw-bold">Política de Privacidade</a>
-        </p>
-    </footer>
-
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -168,10 +183,9 @@
 
     let geoJsonData = null;
     let marker = null;
-    let bairroCache = "";
     let geoJsonLayer = null;
+    let currentFeatureProps = null; // Guarda os dados da região selecionada
 
-    // Cores distintas para as regiões
     const distinctColors = [
         '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', 
         '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', 
@@ -190,19 +204,21 @@
 
     function styleFeature(feature) {
         let nomeParaCor = "default";
-        // Procura alguma propriedade UVIS para definir a cor
+        // Tenta achar UVIS para colorir
         for (const [key, value] of Object.entries(feature.properties)) {
             if (key.toLowerCase().includes('uvis')) {
                 nomeParaCor = value;
                 break;
             }
         }
+        
         const baseColor = getColor(String(nomeParaCor));
+
         return {
             fillColor: baseColor,
-            weight: 2,
+            weight: 1,
             opacity: 1,
-            color: baseColor,
+            color: '#888', // Borda cinza discreta
             dashArray: '',
             fillOpacity: 0.1 
         };
@@ -210,7 +226,11 @@
 
     function highlightFeature(e) {
         const layer = e.target;
-        layer.setStyle({ weight: 4, fillOpacity: 0.3 });
+        layer.setStyle({
+            weight: 3,
+            color: '#666',
+            fillOpacity: 0.3 
+        });
         layer.bringToFront();
         if (marker) marker.setZIndexOffset(1000);
     }
@@ -219,28 +239,27 @@
         geoJsonLayer.resetStyle(e.target);
     }
 
-    // --- LÓGICA DE CLIQUE NO MAPA ---
+    // Função que roda quando clica numa região
     function onFeatureClick(e) {
+        // NÃO apagamos o endereço pesquisado. Apenas atualizamos o bloco de detalhes.
         map.fitBounds(e.target.getBounds());
-        // Atualiza APENAS a caixa de território
-        atualizarBlocoTerritorio(e.target.feature.properties);
-        
-        // Garante que a área de resultados esteja visível
-        document.getElementById('results-area').classList.remove('d-none');
+        exibirDetalhesRegiao(e.target.feature.properties);
     }
 
     function onEachFeature(feature, layer) {
         // Tooltip simples com nome ao passar o mouse
-        let nomeTooltip = "";
+        let nomeDisplay = "";
         for (const [key, value] of Object.entries(feature.properties)) {
             if (key.toLowerCase().includes('uvis')) {
-                nomeTooltip = value;
+                nomeDisplay = value;
                 break;
             }
         }
-        if(nomeTooltip) {
-            layer.bindTooltip(nomeTooltip, { permanent: false, direction: "center", className: "bg-light text-dark border px-1" });
-        }
+        layer.bindTooltip(nomeDisplay, {
+            permanent: false, 
+            direction: "center",
+            className: "bg-transparent border-0 text-dark fw-bold"
+        });
 
         layer.on({
             mouseover: highlightFeature,
@@ -249,11 +268,12 @@
         });
     }
 
-    // --- CARREGAMENTO INICIAL ---
+    // Carregar GeoJSON
     fetch('./dados.json')
         .then(response => response.json())
         .then(data => {
             geoJsonData = data;
+            
             geoJsonLayer = L.geoJson(data, {
                 style: styleFeature,
                 onEachFeature: onEachFeature
@@ -262,14 +282,14 @@
             if(geoJsonLayer.getBounds().isValid()){
                 map.fitBounds(geoJsonLayer.getBounds());
             }
-            console.log("Base carregada.");
+            console.log("Dados carregados.");
         })
         .catch(err => {
             console.error(err);
             alert("Erro ao carregar 'dados.json'.");
         });
 
-    // --- BUSCA DE CEP ---
+    // Busca de CEP
     document.getElementById('cep').addEventListener('blur', function() {
         let cep = this.value.replace(/\D/g, '');
         if (cep.length === 8) {
@@ -278,22 +298,23 @@
                 .then(data => {
                     if (!data.erro) {
                         document.getElementById('logradouro').value = data.logradouro;
-                        bairroCache = data.bairro;
+                        // Opcional: já buscar direto ao sair do CEP
                     }
                 });
         }
     });
 
-    // --- FUNÇÃO DE CONSULTA PRINCIPAL ---
     function buscarEndereco() {
         const rua = document.getElementById('logradouro').value;
         const num = document.getElementById('numero').value;
-        const cepVal = document.getElementById('cep').value;
+        const cepInput = document.getElementById('cep').value;
 
         if (!rua) { alert("Preencha o logradouro."); return; }
 
         document.getElementById('loading').classList.remove('d-none');
-        document.getElementById('results-area').classList.add('d-none');
+        document.getElementById('search-results').classList.add('d-none');
+        // Não escondemos o region-details se ele já estiver aberto, ou podemos esconder para renovar.
+        document.getElementById('region-details').classList.add('d-none');
 
         const query = `${rua}, ${num}, São Paulo, Brasil`;
         
@@ -303,33 +324,18 @@
                 document.getElementById('loading').classList.add('d-none');
                 
                 if (data.length > 0) {
-                    // 1. Atualiza Bloco de Endereço (Fixo)
-                    const enderecoCompleto = rua + (num ? `, ${num}` : '');
-                    let bairroFinal = bairroCache || (data[0].address ? (data[0].address.suburb || data[0].address.neighbourhood || "Não identificado") : "-");
-                    let cepFinal = cepVal || (data[0].address ? data[0].address.postcode : "-");
-
-                    document.getElementById('addr-log').innerText = enderecoCompleto;
-                    document.getElementById('addr-bairro-cep').innerText = `${bairroFinal} - ${cepFinal}`;
-
-                    // 2. Atualiza Mapa e Território
                     const lat = parseFloat(data[0].lat);
                     const lon = parseFloat(data[0].lon);
-                    
-                    if (marker) map.removeLayer(marker);
-                    marker = L.marker([lat, lon], { draggable: true }).addTo(map);
-                    marker.setZIndexOffset(1000);
-                    map.setView([lat, lon], 16);
-                    
-                    // Se o pino for arrastado, recalcula só o território
-                    marker.on('dragend', function(e) {
-                        verificarPoligono(e.target.getLatLng().lat, e.target.getLatLng().lng);
-                    });
 
-                    // Verifica onde caiu
-                    verificarPoligono(lat, lon);
+                    // Preencher Painel 1: Endereço Encontrado
+                    document.getElementById('res-log').innerText = rua + (num ? `, ${num}` : '');
+                    let cepEncontrado = cepInput;
+                    if (!cepEncontrado && data[0].address && data[0].address.postcode) {
+                        cepEncontrado = data[0].address.postcode;
+                    }
+                    document.getElementById('res-cep').innerText = cepEncontrado || "Não informado";
                     
-                    document.getElementById('results-area').classList.remove('d-none');
-
+                    atualizarMapa(lat, lon);
                 } else {
                     alert("Endereço não encontrado.");
                 }
@@ -340,60 +346,96 @@
             });
     }
 
-    // --- FUNÇÕES AUXILIARES DE TERRITÓRIO ---
+    function atualizarMapa(lat, lon) {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+        marker.setZIndexOffset(1000);
+        map.setView([lat, lon], 16);
+        
+        marker.on('dragend', function(e) {
+            verificarPoligono(e.target.getLatLng().lat, e.target.getLatLng().lng);
+        });
+
+        verificarPoligono(lat, lon);
+    }
+
+    // Essa função atualiza os DOIS painéis quando o pino se move ou é criado
     function verificarPoligono(lat, lon) {
         if (!geoJsonData) return;
+
         const ponto = turf.point([lon, lat]);
-        
-        let encontrou = false;
+        let foundFeature = null;
+
         turf.featureEach(geoJsonData, function (feat) {
             if (turf.booleanPointInPolygon(ponto, feat)) {
-                atualizarBlocoTerritorio(feat.properties);
-                encontrou = true;
+                foundFeature = feat;
             }
         });
 
-        if (!encontrou) {
-            document.getElementById('terr-uvis').innerText = "Fora da área mapeada";
-            document.getElementById('terr-da').innerText = "-";
-            document.getElementById('terr-full-info').innerText = "-";
+        if (foundFeature) {
+            // Atualiza Painel 1 (Apenas nomes curtos)
+            const props = foundFeature.properties;
+            let uvis = "-", da = "-";
+            for (const [key, value] of Object.entries(props)) {
+                const k = key.toLowerCase();
+                const v = String(value).trim();
+                if (k.includes('uvis') && !k.includes('cod') && !k.includes('id')) uvis = v;
+                if ((k.includes('da') || k.includes('distrito')) && !k.includes('cod') && !k.includes('id')) da = v;
+            }
+            document.getElementById('res-uvis').innerText = uvis;
+            document.getElementById('res-da').innerText = da;
+            document.getElementById('search-results').classList.remove('d-none');
+
+            // Atualiza Painel 2 (Detalhes Completos)
+            exibirDetalhesRegiao(props);
+        } else {
+            document.getElementById('res-uvis').innerText = "Fora da área mapeada";
+            document.getElementById('res-da').innerText = "-";
+            document.getElementById('search-results').classList.remove('d-none');
+            document.getElementById('region-details').classList.add('d-none');
         }
     }
 
-    function atualizarBlocoTerritorio(props) {
-        let uvis = "-", da = "-";
-        let fullInfo = [];
+    // Função dedicada para preencher o bloco "Ficha Técnica"
+    function exibirDetalhesRegiao(props) {
+        const container = document.getElementById('detail-content');
+        let htmlContent = "";
 
-        // Varre todas as propriedades para montar o bloco
+        // Formata bonitinho todas as propriedades
         for (const [key, value] of Object.entries(props)) {
-            const k = key.toLowerCase();
-            const val = String(value).trim();
-            
-            // Identifica UVIS e DA para destaque
-            if (k.includes('uvis') && !k.includes('cod') && !k.includes('id') && !k.includes('end') && !k.includes('tel')) {
-                 uvis = val;
-            }
-            if ((k.includes('da') || k.includes('distrito')) && !k.includes('cod') && !k.includes('id')) {
-                 da = val;
-            }
-
-            // Adiciona tudo ao "blocão" de detalhes
-            // Formato: Chave: Valor
-            if (val && val !== "null" && val !== "undefined") {
-                 fullInfo.push(`${key}: ${val}`);
+            // Ignora campos internos de geometria se houver
+            if (key !== 'geometry' && key !== 'type') {
+                htmlContent += `<strong>${key}:</strong> ${value}\n`;
             }
         }
 
-        document.getElementById('terr-uvis').innerText = uvis;
-        document.getElementById('terr-da').innerText = da;
-        document.getElementById('terr-full-info').innerText = fullInfo.join("\n");
+        container.innerText = htmlContent; // innerText preserva quebras de linha com \n
+        document.getElementById('region-details').classList.remove('d-none');
     }
 
-    function copiar(elementId) {
+    // Copiar Texto Simples
+    function copiar(btn, elementId) {
         const texto = document.getElementById(elementId).innerText;
         navigator.clipboard.writeText(texto).then(() => {
-            // Feedback visual rápido
-            alert("Copiado!"); 
+            const originalHTML = btn.innerHTML;
+            btn.classList.add('copied');
+            btn.innerHTML = "✓";
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = originalHTML;
+            }, 1500);
+        });
+    }
+
+    // Copiar Texto do Bloco de Detalhes
+    function copiarTextoDetalhes(btn) {
+        const texto = document.getElementById('detail-content').innerText;
+        navigator.clipboard.writeText(texto).then(() => {
+            const originalText = btn.innerText;
+            btn.innerText = "Copiado!";
+            setTimeout(() => {
+                btn.innerText = originalText;
+            }, 2000);
         });
     }
 </script>
