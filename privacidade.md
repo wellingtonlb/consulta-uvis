@@ -1,0 +1,1 @@
+Esta extensão não coleta, armazena ou compartilha dados pessoais do usuário. As consultas de endereço são enviadas anonimamente para as APIs públicas do OpenStreetMap e ViaCEP apenas para fins de geolocalização em tempo real.
