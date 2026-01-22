@@ -12,7 +12,7 @@
         body { background-color: #f4f6f9; }
         .main-card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         
-        #map { height: 650px; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; }
+        #map { height: 75vh; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; }
         
         .result-row { 
             display: flex; 
@@ -30,22 +30,21 @@
         .res-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px; }
         .res-value { font-size: 1rem; color: #212529; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
         
-        /* ESTILO DO BLOCÃO DE EMAIL */
         .email-block {
-            display: block; /* Garante que ocupe a linha toda se precisar */
+            display: block;
             margin-top: 5px;
             padding: 10px;
-            background-color: #f8f9fa; /* Fundo cinza claro para destacar */
+            background-color: #f8f9fa;
             border: 1px solid #dee2e6;
             border-radius: 6px;
         }
         
         .res-value-multiline {
-            font-size: 0.85rem; /* Fonte levemente menor para caber mais texto */
+            font-size: 0.85rem;
             color: #212529;
             font-weight: 600;
-            white-space: pre-wrap; /* Mantém quebras de linha se existirem */
-            word-break: break-word; /* Quebra palavras muito longas */
+            white-space: pre-wrap;
+            word-break: break-word;
             line-height: 1.5;
         }
 
@@ -74,14 +73,14 @@
 </head>
 <body class="py-4">
 
-<div class="container" style="max-width: 1200px;">
+<div class="container-fluid px-4">
     <div class="text-center mb-4">
         <h3 class="fw-bold text-primary">📍 Localizador UVIS e DA</h3>
         <p class="text-muted small">Prefeitura de São Paulo - Consulta de Território</p>
     </div>
 
     <div class="row g-4">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card main-card mb-3">
                 <div class="card-body">
                     <div class="mb-2">
@@ -108,7 +107,7 @@
             </div>
 
             <div id="results-area" class="d-none animate__animated animate__fadeIn">
-                <h6 class="fw-bold text-secondary mb-3 small">RESULTADOS ENCONTRADOS</h6>
+                <h6 class="fw-bold text-secondary mb-3 small">DADOS DO TERRITÓRIO</h6>
                 
                 <div class="result-row border-uvis">
                     <div style="flex: 1; min-width: 0;">
@@ -132,7 +131,7 @@
 
                 <div class="result-row">
                     <div style="flex: 1; min-width: 0;">
-                        <span class="res-label">Logradouro</span>
+                        <span class="res-label">Logradouro / Local</span>
                         <span id="res-log" class="res-value">-</span>
                     </div>
                     <button class="btn-copy" onclick="copiar(this, 'res-log')" title="Copiar Logradouro">
@@ -173,23 +172,23 @@
             </div>
         </div>
         
-        <div class="col-md-8">
+        <div class="col-md-9">
             <div id="map"></div>
             <p class="text-muted small mt-2 text-end">
-                <span class="badge bg-light text-dark border">Dica</span> Arraste o pino azul para ajustar a localização exata.
+                <span class="badge bg-light text-dark border">Dica</span> Clique em uma região para ver os detalhes na lateral esquerda.
             </p>
         </div>
     </div>
-</div>
-
+    
     <footer class="text-center mt-5 mb-4">
         <hr class="w-50 mx-auto text-secondary" style="opacity: 0.2;">
         <p class="small text-muted">
-            Ferramenta de consulta territorial<br>
+            Ferramenta de consulta territorial - Prefeitura de SP<br>
             <a href="privacidade.html" class="text-decoration-none text-primary fw-bold">Política de Privacidade</a>
         </p>
     </footer>
-    </div> <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
@@ -257,21 +256,62 @@
         geoJsonLayer.resetStyle(e.target);
     }
 
+    function onFeatureClick(e) {
+        map.fitBounds(e.target.getBounds());
+        
+        const props = e.target.feature.properties;
+        let uvis = "-", da = "-", email = "-";
+        let foundSpecificEmail = false;
+
+        for (const [key, value] of Object.entries(props)) {
+            const k = key.toLowerCase();
+            const v = String(value).trim();
+
+            if (k.includes('uvis') && !k.includes('cod') && !k.includes('id')) {
+                 uvis = v;
+            }
+            if ((k.includes('da') || k.includes('distrito')) && !k.includes('cod') && !k.includes('id')) {
+                 da = v;
+            }
+
+            if (k === 'email') {
+                email = v;
+                foundSpecificEmail = true;
+            } else if (k.includes('email') && !foundSpecificEmail) {
+                email = v;
+            }
+        }
+
+        document.getElementById('res-uvis').innerText = uvis;
+        document.getElementById('res-da').innerText = da;
+        document.getElementById('res-email').innerText = email;
+        document.getElementById('res-log').innerText = "Região Selecionada no Mapa";
+        document.getElementById('res-bairro').innerText = "-";
+        document.getElementById('res-cep').innerText = "-";
+        
+        document.getElementById('results-area').classList.remove('d-none');
+    }
+
     function onEachFeature(feature, layer) {
+        let nomeUVIS = "";
+        for (const [key, value] of Object.entries(feature.properties)) {
+            if (key.toLowerCase().includes('uvis')) {
+                nomeUVIS = value;
+                break;
+            }
+        }
+
+        layer.bindTooltip(nomeUVIS, {
+            permanent: false, 
+            direction: "center",
+            className: "bg-transparent border-0 text-dark fw-bold"
+        });
+
         layer.on({
             mouseover: highlightFeature,
             mouseout: resetHighlight,
-            click: function(e) {
-                map.fitBounds(e.target.getBounds());
-            }
+            click: onFeatureClick
         });
-        
-        let popupContent = '<div style="font-size:12px;">';
-        for (const [key, value] of Object.entries(feature.properties)) {
-            popupContent += `<strong>${key}:</strong> ${value}<br>`;
-        }
-        popupContent += '</div>';
-        layer.bindPopup(popupContent);
     }
 
     fetch('./dados.json')
@@ -409,13 +449,10 @@
                         candidatosDA.push({ valor: v, pontos: pontos });
                     }
 
-                    // Nova Lógica de Email: Prioriza a chave exata "EMAIL" ou "email"
-                    // que geralmente contém o texto longo
                     if (k === 'email') {
                         emailFinal = v;
                         foundSpecificEmail = true;
                     } else if (k.includes('email') && !foundSpecificEmail) {
-                        // Se ainda não achou a chave exata, pega qualquer uma que tenha "email" no nome
                         emailFinal = v;
                     }
                 }
@@ -449,5 +486,3 @@
 
 </body>
 </html>
-
-
