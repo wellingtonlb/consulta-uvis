@@ -2,7 +2,7 @@
 
 Ferramenta web desenvolvida para facilitar a identificação da **Unidade de Vigilância em Saúde (UVIS)** e do **Distrito Administrativo (DA)** correspondentes a um determinado endereço ou CEP no município de São Paulo.
 
-🔗 **[Acesso Online Aqui](https://wellingtonlb.github.io/consulta-uvis/)**
+**[Acesso Online Aqui](https://wellingtonlb.github.io/consulta-uvis/)**
 
 ---
 
@@ -35,7 +35,7 @@ Ao clicar sobre qualquer área colorida do mapa, uma ficha técnica completa é 
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 * **HTML5 & CSS3**
 * **JavaScript (Vanilla)**
@@ -46,7 +46,7 @@ Ao clicar sobre qualquer área colorida do mapa, uma ficha técnica completa é 
 
 ---
 
-## 📂 Como Executar Localmente
+## Como Executar Localmente
 
 1.  Clone este repositório:
     ```bash
@@ -58,7 +58,7 @@ Ao clicar sobre qualquer área colorida do mapa, uma ficha técnica completa é 
 
 ---
 
-## 📄 Dados e Privacidade
+## Dados e Privacidade
 
 * **Fonte de Dados:** Os perímetros das UVIS e DA foram baseados em dados públicos georreferenciados (GeoJSON).
 * **Privacidade:** Nenhuma informação pesquisada pelo usuário é salva em banco de dados. Todas as consultas são realizadas em tempo real via APIs públicas e o processamento é feito no navegador do usuário (Client-side).
