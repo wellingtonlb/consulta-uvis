@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta UVIS - SP</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        body { background-color: #f4f6f9; }
+        .main-card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        #map { height: 400px; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; }
+        
+        .result-row { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background: #fff; 
+            border: 1px solid #e9ecef; 
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            margin-bottom: 8px;
+            transition: 0.2s;
+        }
+        .result-row:hover { border-color: #cbd5e0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
+        .res-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px; }
+        .res-value { font-size: 1rem; color: #212529; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
+        
+        .btn-copy { 
+            background-color: #f8f9fa; 
+            border: 1px solid #dee2e6; 
+            color: #495057; 
+            width: 36px; 
+            height: 36px; 
+            border-radius: 6px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+            margin-left: 10px;
+        }
+        .btn-copy:hover { background-color: #e2e6ea; color: #0d6efd; border-color: #cbd5e0; }
+        .btn-copy:active { transform: scale(0.95); }
+        .btn-copy.copied { background-color: #198754; color: white; border-color: #198754; }
+
+        /* Cores das Bordas */
+        .border-uvis { border-left: 4px solid #0d6efd; }
+        .border-da { border-left: 4px solid #198754; }
+    </style>
+</head>
+<body class="py-4">
+
+<div class="container" style="max-width: 900px;">
+    <div class="text-center mb-4">
+        <h3 class="fw-bold text-primary">📍 Localizador UVIS e DA</h3>
+        <p class="text-muted small">Prefeitura de São Paulo - Consulta de Território</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="card main-card mb-3">
+                <div class="card-body">
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold text-secondary">CEP (Busca Automática)</label>
+                        <input type="text" class="form-control" id="cep" placeholder="00000-000" maxlength="9">
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-8">
+                            <label class="form-label small fw-bold text-secondary">Logradouro *</label>
+                            <input type="text" class="form-control" id="logradouro" placeholder="Nome da rua">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label small fw-bold text-secondary">Número</label>
+                            <input type="text" class="form-control" id="numero" placeholder="Nº">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary w-100 fw-bold mt-2" onclick="buscarEndereco()">🔍 CONSULTAR MAPA</button>
+                </div>
+            </div>
+
+            <div id="loading" class="text-center d-none py-3">
+                <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+                <span class="ms-2 small text-muted">Consultando bases...</span>
+            </div>
+
+            <div id="results-area" class="d-none animate__animated animate__fadeIn">
+                <h6 class="fw-bold text-secondary mb-3 small">RESULTADOS ENCONTRADOS</h6>
+                
+                <div class="result-row border-uvis">
+                    <div style="flex: 1; min-width: 0;">
+                        <span class="res-label">UVIS (Vigilância em Saúde)</span>
+                        <span id="res-uvis" class="res-value">-</span>
+                    </div>
+                    <button class="btn-copy" onclick="copiar(this, 'res-uvis')" title="Copiar UVIS">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
+                    </button>
+                </div>
+
+                <div class="result-row border-da">
+                    <div style="flex: 1; min-width: 0;">
+                        <span class="res-label">DA (Distrito Administrativo)</span>
+                        <span id="res-da" class="res-value">-</span>
+                    </div>
+                    <button class="btn-copy" onclick="copiar(this, 'res-da')" title="Copiar DA">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
+                    </button>
+                </div>
+
+                <div class="result-row">
+                    <div style="flex: 1; min-width: 0;">
+                        <span class="res-label">Logradouro</span>
+                        <span id="res-log" class="res-value">-</span>
+                    </div>
+                    <button class="btn-copy" onclick="copiar(this, 'res-log')" title="Copiar Logradouro">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
+                    </button>
+                </div>
+
+                <div class="result-row">
+                    <div style="flex: 1; min-width: 0;">
+                        <span class="res-label">Bairro</span>
+                        <span id="res-bairro" class="res-value">-</span>
+                    </div>
+                    <button class="btn-copy" onclick="copiar(this, 'res-bairro')" title="Copiar Bairro">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
+                    </button>
+                </div>
+
+                <div class="result-row">
+                    <div style="flex: 1; min-width: 0;">
+                        <span class="res-label">CEP</span>
+                        <span id="res-cep" class="res-value">-</span>
+                    </div>
+                    <button class="btn-copy" onclick="copiar(this, 'res-cep')" title="Copiar CEP">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+        
+        <div class="col-md-7">
+            <div id="map"></div>
+            <p class="text-muted small mt-2 text-end">
+                <span class="badge bg-light text-dark border">Dica</span> Arraste o pino azul para ajustar a localização exata.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+
+<script>
+  
+    const map = L.map('map').setView([-23.5505, -46.6333], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    let geoJsonData = null;
+    let marker = null;
+    let bairroCache = ""; // Para guardar o bairro encontrado pelo CEP
+
+    fetch('./dados.json')
+        .then(response => response.json())
+        .then(data => {
+            geoJsonData = data;
+            console.log("Base de dados carregada.");
+        })
+        .catch(err => alert("Erro ao carregar 'dados.json'. Verifique se o arquivo está no repositório."));
+
+
+    document.getElementById('cep').addEventListener('blur', function() {
+        let cep = this.value.replace(/\D/g, '');
+        if (cep.length === 8) {
+            fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.erro) {
+                        document.getElementById('logradouro').value = data.logradouro;
+                        bairroCache = data.bairro; // Salva o bairro oficial dos correios
+                        document.getElementById('res-bairro').innerText = data.bairro;
+                    }
+                });
+        }
+    });
+
+    function buscarEndereco() {
+        const rua = document.getElementById('logradouro').value;
+        const num = document.getElementById('numero').value;
+        const cepInput = document.getElementById('cep').value;
+
+        if (!rua) { alert("Por favor, preencha o logradouro."); return; }
+
+        document.getElementById('loading').classList.remove('d-none');
+        document.getElementById('results-area').classList.add('d-none');
+
+        const query = `${rua}, ${num}, São Paulo, Brasil`;
+        
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('loading').classList.add('d-none');
+                
+                if (data.length > 0) {
+
+                    document.getElementById('res-log').innerText = rua + (num ? `, ${num}` : '');
+                    document.getElementById('res-cep').innerText = cepInput || "Não informado";
+
+                    let bairroMapa = "";
+                    if (data[0].address) {
+                        // Tenta achar o bairro nos dados do mapa (pode vir com vários nomes)
+                        bairroMapa = data[0].address.suburb || data[0].address.neighbourhood || data[0].address.residential || data[0].address.city_district || "";
+                    }
+                    
+                    if (bairroCache) {
+                         document.getElementById('res-bairro').innerText = bairroCache;
+                    } else if (bairroMapa) {
+                        document.getElementById('res-bairro').innerText = bairroMapa;
+                    } else {
+                        document.getElementById('res-bairro').innerText = "Não identificado";
+                    }
+
+                    const lat = parseFloat(data[0].lat);
+                    const lon = parseFloat(data[0].lon);
+                    
+                    atualizarMapa(lat, lon);
+                } else {
+                    alert("Endereço não encontrado no mapa.");
+                }
+            })
+            .catch(() => {
+                document.getElementById('loading').classList.add('d-none');
+                alert("Erro de conexão com o serviço de mapa.");
+            });
+    }
+
+    function atualizarMapa(lat, lon) {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+        map.setView([lat, lon], 16);
+        
+        marker.on('dragend', function(e) {
+            verificarPoligono(e.target.getLatLng().lat, e.target.getLatLng().lng);
+        });
+
+        verificarPoligono(lat, lon);
+        document.getElementById('results-area').classList.remove('d-none');
+    }
+
+  
+    function verificarPoligono(lat, lon) {
+        if (!geoJsonData) return;
+
+        const ponto = turf.point([lon, lat]);
+        let candidatosUVIS = [];
+        let candidatosDA = [];
+        let encontrou = false;
+
+        turf.featureEach(geoJsonData, function (feat) {
+            if (turf.booleanPointInPolygon(ponto, feat)) {
+                encontrou = true;
+                const props = feat.properties;
+
+                for (const [key, value] of Object.entries(props)) {
+                    const k = key.toLowerCase();
+                    const v = String(value).trim();
+
+                    if (k.includes('uvis')) {
+                        let pontos = 0;
+                        if (k.includes('nome') || k.includes('nm') || k.includes('desc')) pontos += 20; 
+                        if (isNaN(v)) pontos += 10; 
+                        if (k.includes('cod') || k.includes('id')) pontos -= 10; 
+                        candidatosUVIS.push({ valor: v, pontos: pontos });
+                    }
+
+                    if (k.includes('da') || k.includes('distrito')) {
+                        let pontos = 0;
+                        if (k.includes('nome') || k.includes('nm') || k.includes('desc')) pontos += 20;
+                        if (isNaN(v)) pontos += 10;
+                        if (k.includes('cod') || k.includes('id')) pontos -= 10;
+                        candidatosDA.push({ valor: v, pontos: pontos });
+                    }
+                }
+            }
+        });
+
+  
+        candidatosUVIS.sort((a, b) => b.pontos - a.pontos);
+        candidatosDA.sort((a, b) => b.pontos - a.pontos);
+
+        const uvisFinal = candidatosUVIS.length > 0 ? candidatosUVIS[0].valor : "Fora da área mapeada";
+        const daFinal = candidatosDA.length > 0 ? candidatosDA[0].valor : "Fora da área mapeada";
+
+        document.getElementById('res-uvis').innerText = uvisFinal;
+        document.getElementById('res-da').innerText = daFinal;
+    }
+
+ 
+    function copiar(btn, elementId) {
+        const texto = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(texto).then(() => {
+            const originalHTML = btn.innerHTML;
+            btn.classList.add('copied');
+            btn.innerHTML = `<svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>`; 
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = originalHTML;
+            }, 2000);
+        });
+    }
+</script>
+
+</body>
+</html>
+
