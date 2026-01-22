@@ -47,7 +47,6 @@
         .btn-copy:active { transform: scale(0.95); }
         .btn-copy.copied { background-color: #198754; color: white; border-color: #198754; }
 
-        /* Cores das Bordas */
         .border-uvis { border-left: 4px solid #0d6efd; }
         .border-da { border-left: 4px solid #198754; }
     </style>
@@ -156,24 +155,97 @@
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
 
 <script>
-  
     const map = L.map('map').setView([-23.5505, -46.6333], 11);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap'
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO'
     }).addTo(map);
 
     let geoJsonData = null;
     let marker = null;
-    let bairroCache = ""; // Para guardar o bairro encontrado pelo CEP
+    let bairroCache = "";
+    let geoJsonLayer = null;
+
+    function getColor(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+        return '#' + "00000".substring(0, 6 - c.length) + c;
+    }
+
+    function styleFeature(feature) {
+        let nomeParaCor = "default";
+        const props = feature.properties;
+        for (const [key, value] of Object.entries(props)) {
+            if (key.toLowerCase().includes('uvis')) {
+                nomeParaCor = value;
+                break;
+            }
+        }
+        return {
+            fillColor: getColor(String(nomeParaCor)),
+            weight: 2,
+            opacity: 1,
+            color: 'white',
+            dashArray: '3',
+            fillOpacity: 0.4
+        };
+    }
+
+    function highlightFeature(e) {
+        const layer = e.target;
+        layer.setStyle({
+            weight: 3,
+            color: '#666',
+            dashArray: '',
+            fillOpacity: 0.7
+        });
+        layer.bringToFront();
+        if (marker) marker.setZIndexOffset(1000);
+    }
+
+    function resetHighlight(e) {
+        geoJsonLayer.resetStyle(e.target);
+    }
+
+    function onEachFeature(feature, layer) {
+        layer.on({
+            mouseover: highlightFeature,
+            mouseout: resetHighlight,
+            click: function(e) {
+                map.fitBounds(e.target.getBounds());
+            }
+        });
+        
+        let popupContent = '<div style="font-size:12px;">';
+        for (const [key, value] of Object.entries(feature.properties)) {
+            popupContent += `<strong>${key}:</strong> ${value}<br>`;
+        }
+        popupContent += '</div>';
+        layer.bindPopup(popupContent);
+    }
 
     fetch('./dados.json')
         .then(response => response.json())
         .then(data => {
             geoJsonData = data;
-            console.log("Base de dados carregada.");
-        })
-        .catch(err => alert("Erro ao carregar 'dados.json'. Verifique se o arquivo está no repositório."));
+            
+            geoJsonLayer = L.geoJson(data, {
+                style: styleFeature,
+                onEachFeature: onEachFeature
+            }).addTo(map);
 
+            if(geoJsonLayer.getBounds().isValid()){
+                map.fitBounds(geoJsonLayer.getBounds());
+            }
+
+            console.log("Base de dados carregada e desenhada.");
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Erro ao carregar 'dados.json'. Verifique se o arquivo está no repositório.");
+        });
 
     document.getElementById('cep').addEventListener('blur', function() {
         let cep = this.value.replace(/\D/g, '');
@@ -183,7 +255,7 @@
                 .then(data => {
                     if (!data.erro) {
                         document.getElementById('logradouro').value = data.logradouro;
-                        bairroCache = data.bairro; // Salva o bairro oficial dos correios
+                        bairroCache = data.bairro;
                         document.getElementById('res-bairro').innerText = data.bairro;
                     }
                 });
@@ -202,13 +274,12 @@
 
         const query = `${rua}, ${num}, São Paulo, Brasil`;
         
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}`)
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&limit=1`)
             .then(res => res.json())
             .then(data => {
                 document.getElementById('loading').classList.add('d-none');
                 
                 if (data.length > 0) {
-
                     document.getElementById('res-log').innerText = rua + (num ? `, ${num}` : '');
                     let cepEncontrado = cepInput;
                     if (!cepEncontrado && data[0].address && data[0].address.postcode) {
@@ -218,7 +289,6 @@
                     
                     let bairroMapa = "";
                     if (data[0].address) {
-                        // Tenta achar o bairro nos dados do mapa (pode vir com vários nomes)
                         bairroMapa = data[0].address.suburb || data[0].address.neighbourhood || data[0].address.residential || data[0].address.city_district || "";
                     }
                     
@@ -247,6 +317,7 @@
     function atualizarMapa(lat, lon) {
         if (marker) map.removeLayer(marker);
         marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+        marker.setZIndexOffset(1000);
         map.setView([lat, lon], 16);
         
         marker.on('dragend', function(e) {
@@ -257,18 +328,15 @@
         document.getElementById('results-area').classList.remove('d-none');
     }
 
-  
     function verificarPoligono(lat, lon) {
         if (!geoJsonData) return;
 
         const ponto = turf.point([lon, lat]);
         let candidatosUVIS = [];
         let candidatosDA = [];
-        let encontrou = false;
 
         turf.featureEach(geoJsonData, function (feat) {
             if (turf.booleanPointInPolygon(ponto, feat)) {
-                encontrou = true;
                 const props = feat.properties;
 
                 for (const [key, value] of Object.entries(props)) {
@@ -294,7 +362,6 @@
             }
         });
 
-  
         candidatosUVIS.sort((a, b) => b.pontos - a.pontos);
         candidatosDA.sort((a, b) => b.pontos - a.pontos);
 
@@ -305,7 +372,6 @@
         document.getElementById('res-da').innerText = daFinal;
     }
 
- 
     function copiar(btn, elementId) {
         const texto = document.getElementById(elementId).innerText;
         navigator.clipboard.writeText(texto).then(() => {
@@ -322,5 +388,3 @@
 
 </body>
 </html>
-
-
