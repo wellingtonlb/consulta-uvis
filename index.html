@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta UVIS - SP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 400px; width: 100%; border-radius: 8px; }
+        .result-box { background: #f8f9fa; padding: 10px; border-left: 5px solid #0d6efd; margin-bottom: 5px; }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container py-3">
+    <h3 class="text-primary mb-3">📍 Localizador UVIS/DA</h3>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <input type="text" class="form-control" id="cep" placeholder="CEP (Opcional)" maxlength="9">
+                </div>
+                <div class="col-md-7">
+                    <input type="text" class="form-control" id="logradouro" placeholder="Endereço (Obrigatório)">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control" id="numero" placeholder="Nº">
+                </div>
+            </div>
+            <button class="btn btn-primary w-100 mt-2 fw-bold" onclick="buscarEndereco()">🔍 CONSULTAR</button>
+        </div>
+    </div>
+
+    <div id="loading" class="text-center d-none"><div class="spinner-border text-primary"></div></div>
+    
+    <div id="results" class="d-none">
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <div class="result-box"><strong>UVIS:</strong> <span id="res-uvis">-</span></div>
+                <div class="result-box" style="border-color: #198754;"><strong>DA:</strong> <span id="res-da">-</span></div>
+                <button class="btn btn-dark btn-sm w-100" onclick="copiarTexto()">📋 Copiar Tudo</button>
+            </div>
+            <div class="col-md-6">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+
+<script>
+    const map = L.map('map').setView([-23.5505, -46.6333], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+    let geoJsonData = null;
+    let marker = null;
+
+    // CARREGAMENTO AUTOMÁTICO DO JSON
+    fetch('./dados.json')
+        .then(response => response.json())
+        .then(data => {
+            geoJsonData = data;
+            // Opcional: Mostra o mapa carregado mas invisível pra não poluir
+            console.log("Base de dados carregada com sucesso.");
+        })
+        .catch(err => alert("Erro ao carregar base de dados. Verifique se o arquivo 'dados.json' está na mesma pasta."));
+
+    // VIA CEP
+    document.getElementById('cep').addEventListener('blur', function() {
+        let cep = this.value.replace(/\D/g, '');
+        if (cep.length === 8) {
+            fetch(`https://viacep.com.br/ws/${cep}/json/`).then(r => r.json()).then(d => {
+                if(!d.erro) document.getElementById('logradouro').value = d.logradouro;
+            });
+        }
+    });
+
+    function buscarEndereco() {
+        const rua = document.getElementById('logradouro').value;
+        const num = document.getElementById('numero').value;
+        if (!rua) return alert("O Logradouro é obrigatório.");
+
+        document.getElementById('loading').classList.remove('d-none');
+        document.getElementById('results').classList.add('d-none');
+
+        const query = `${rua}, ${num}, São Paulo, Brasil`;
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+            .then(r => r.json()).then(d => {
+                document.getElementById('loading').classList.add('d-none');
+                if (d.length > 0) atualizarMapa(parseFloat(d[0].lat), parseFloat(d[0].lon));
+                else alert("Endereço não encontrado.");
+            });
+    }
+
+    function atualizarMapa(lat, lon) {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+        map.setView([lat, lon], 16);
+        marker.on('dragend', (e) => verificarPoligono(e.target.getLatLng().lat, e.target.getLatLng().lng));
+        verificarPoligono(lat, lon);
+        document.getElementById('results').classList.remove('d-none');
+        setTimeout(() => map.invalidateSize(), 100); // Fix para mapa não carregar cinza
+    }
+
+    function verificarPoligono(lat, lon) {
+        if (!geoJsonData) return;
+        const ponto = turf.point([lon, lat]);
+        let uvis = "Não encontrado", da = "Não encontrado";
+        
+        turf.featureEach(geoJsonData, function (feat) {
+            if (turf.booleanPointInPolygon(ponto, feat)) {
+                // Lógica simplificada de detecção
+                for (const [k, v] of Object.entries(feat.properties)) {
+                    if (k.toLowerCase().includes('uvis') && isNaN(v)) uvis = v;
+                    if ((k.toLowerCase().includes('da') || k.toLowerCase().includes('distrito')) && isNaN(v)) da = v;
+                }
+            }
+        });
+        document.getElementById('res-uvis').innerText = uvis;
+        document.getElementById('res-da').innerText = da;
+    }
+
+    function copiarTexto() {
+        const txt = `Endereço: ${document.getElementById('logradouro').value}, ${document.getElementById('numero').value}\nCEP: ${document.getElementById('cep').value}\nUVIS: ${document.getElementById('res-uvis').innerText}\nDA: ${document.getElementById('res-da').innerText}`;
+        navigator.clipboard.writeText(txt).then(() => alert("Copiado!"));
+    }
+</script>
+</body>
+</html>
