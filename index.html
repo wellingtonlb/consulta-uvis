@@ -28,7 +28,6 @@
         .res-label { font-size: 0.7rem; color: #6c757d; text-transform: uppercase; font-weight: 700; display: block; }
         .res-value { font-size: 0.95rem; color: #212529; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
         
-        /* Estilo especial para o campo de email permitir quebra de linha */
         .res-value-multiline {
             font-size: 0.85rem;
             color: #212529;
@@ -265,6 +264,11 @@
         map.fitBounds(e.target.getBounds());
         exibirDetalhesRegiao(e.target.feature.properties);
         atualizarPainelResumo(e.target.feature.properties);
+        
+        // ZERA OS CAMPOS DE ENDEREÇO AO CLICAR NO MAPA
+        document.getElementById('res-log').innerText = "-";
+        document.getElementById('res-bairro').innerText = "-";
+        document.getElementById('res-cep').innerText = "-";
     }
 
     function onEachFeature(feature, layer) {
@@ -435,7 +439,7 @@
                 candidatosDA.push({ valor: v, pontos: pontos });
             }
 
-            // LÓGICA DE EMAIL (Prioriza chave exata "email")
+            // LÓGICA DE EMAIL
             if (k === 'email') {
                 emailFinal = v;
                 foundSpecificEmail = true;
@@ -456,7 +460,6 @@
         const container = document.getElementById('detail-content');
         let htmlContent = "";
 
-        // Formatação limpa usando innerHTML
         for (const [key, value] of Object.entries(props)) {
             if (key !== 'geometry' && key !== 'type') {
                 htmlContent += `<div style="margin-bottom: 5px;"><strong>${key}:</strong> ${value}</div>`;
