@@ -165,13 +165,20 @@
     let bairroCache = "";
     let geoJsonLayer = null;
 
+    const distinctColors = [
+        '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', 
+        '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', 
+        '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', 
+        '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'
+    ];
+
     function getColor(str) {
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
             hash = str.charCodeAt(i) + ((hash << 5) - hash);
         }
-        const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
-        return '#' + "00000".substring(0, 6 - c.length) + c;
+        const index = Math.abs(hash) % distinctColors.length;
+        return distinctColors[index];
     }
 
     function styleFeature(feature) {
@@ -183,23 +190,24 @@
                 break;
             }
         }
+        
+        const baseColor = getColor(String(nomeParaCor));
+
         return {
-            fillColor: getColor(String(nomeParaCor)),
+            fillColor: baseColor,
             weight: 2,
             opacity: 1,
-            color: 'white',
-            dashArray: '3',
-            fillOpacity: 0.4
+            color: baseColor,
+            dashArray: '',
+            fillOpacity: 0.2
         };
     }
 
     function highlightFeature(e) {
         const layer = e.target;
         layer.setStyle({
-            weight: 3,
-            color: '#666',
-            dashArray: '',
-            fillOpacity: 0.7
+            weight: 4,
+            fillOpacity: 0.5
         });
         layer.bringToFront();
         if (marker) marker.setZIndexOffset(1000);
