@@ -30,14 +30,23 @@
         .res-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px; }
         .res-value { font-size: 1rem; color: #212529; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
         
-        /* Estilo específico para o campo de email permitir texto longo (quebra de linha) */
+        /* ESTILO DO BLOCÃO DE EMAIL */
+        .email-block {
+            display: block; /* Garante que ocupe a linha toda se precisar */
+            margin-top: 5px;
+            padding: 10px;
+            background-color: #f8f9fa; /* Fundo cinza claro para destacar */
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+        }
+        
         .res-value-multiline {
-            font-size: 0.9rem;
+            font-size: 0.85rem; /* Fonte levemente menor para caber mais texto */
             color: #212529;
             font-weight: 600;
-            white-space: normal;
-            word-break: break-word;
-            line-height: 1.4;
+            white-space: pre-wrap; /* Mantém quebras de linha se existirem */
+            word-break: break-word; /* Quebra palavras muito longas */
+            line-height: 1.5;
         }
 
         .btn-copy { 
@@ -151,14 +160,14 @@
                     </button>
                 </div>
 
-                <div class="result-row">
-                    <div style="flex: 1; min-width: 0;">
+                <div class="email-block">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <span class="res-label">Contatos / Email</span>
-                        <span id="res-email" class="res-value-multiline">-</span>
+                        <button class="btn-copy" style="margin-top: -5px; margin-right: -5px;" onclick="copiar(this, 'res-email')" title="Copiar Tudo">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
+                        </button>
                     </div>
-                    <button class="btn-copy" onclick="copiar(this, 'res-email')" title="Copiar Email">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>
-                    </button>
+                    <span id="res-email" class="res-value-multiline mt-2 d-block">-</span>
                 </div>
 
             </div>
@@ -364,11 +373,12 @@
         const ponto = turf.point([lon, lat]);
         let candidatosUVIS = [];
         let candidatosDA = [];
-        let candidatosEmail = [];
+        let emailFinal = "-";
 
         turf.featureEach(geoJsonData, function (feat) {
             if (turf.booleanPointInPolygon(ponto, feat)) {
                 const props = feat.properties;
+                let foundSpecificEmail = false;
 
                 for (const [key, value] of Object.entries(props)) {
                     const k = key.toLowerCase();
@@ -390,9 +400,14 @@
                         candidatosDA.push({ valor: v, pontos: pontos });
                     }
 
-                    // Lógica para capturar o Email/Bloco de contatos
-                    if (k.includes('email')) {
-                        candidatosEmail.push(v);
+                    // Nova Lógica de Email: Prioriza a chave exata "EMAIL" ou "email"
+                    // que geralmente contém o texto longo
+                    if (k === 'email') {
+                        emailFinal = v;
+                        foundSpecificEmail = true;
+                    } else if (k.includes('email') && !foundSpecificEmail) {
+                        // Se ainda não achou a chave exata, pega qualquer uma que tenha "email" no nome
+                        emailFinal = v;
                     }
                 }
             }
@@ -403,7 +418,6 @@
 
         const uvisFinal = candidatosUVIS.length > 0 ? candidatosUVIS[0].valor : "Fora da área mapeada";
         const daFinal = candidatosDA.length > 0 ? candidatosDA[0].valor : "Fora da área mapeada";
-        const emailFinal = candidatosEmail.length > 0 ? candidatosEmail[0] : "-";
 
         document.getElementById('res-uvis').innerText = uvisFinal;
         document.getElementById('res-da').innerText = daFinal;
