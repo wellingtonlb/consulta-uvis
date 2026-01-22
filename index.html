@@ -411,7 +411,6 @@
     }
 
     function atualizarPainelResumo(props) {
-        // Lógica de pontuação para achar o nome da UVIS correto
         let candidatosUVIS = [];
         let candidatosDA = [];
         let emailFinal = "-";
@@ -421,7 +420,6 @@
             const k = key.toLowerCase();
             const v = String(value).trim();
 
-            // PONTUAÇÃO UVIS
             if (k.includes('uvis')) {
                 let pontos = 0;
                 if (k.includes('nome') || k.includes('nm') || k.includes('desc')) pontos += 20; 
@@ -430,7 +428,6 @@
                 candidatosUVIS.push({ valor: v, pontos: pontos });
             }
 
-            // PONTUAÇÃO DA
             if (k.includes('da') || k.includes('distrito')) {
                 let pontos = 0;
                 if (k.includes('nome') || k.includes('nm') || k.includes('desc')) pontos += 20;
@@ -439,7 +436,6 @@
                 candidatosDA.push({ valor: v, pontos: pontos });
             }
 
-            // LÓGICA DE EMAIL
             if (k === 'email') {
                 emailFinal = v;
                 foundSpecificEmail = true;
@@ -459,9 +455,26 @@
     function exibirDetalhesRegiao(props) {
         const container = document.getElementById('detail-content');
         let htmlContent = "";
+        
+        // CAMPOS QUE SERÃO IGNORADOS NA LISTA
+        const ignorar = [
+            'name', 
+            'description', 
+            'geometry', 
+            'type', 
+            'styleUrl', 
+            'styleHash', 
+            'styleMap',
+            'stroke', 
+            'stroke-width', 
+            'stroke-opacity', 
+            'fill', 
+            'fill-opacity',
+            'icon'
+        ];
 
         for (const [key, value] of Object.entries(props)) {
-            if (key !== 'geometry' && key !== 'type') {
+            if (!ignorar.includes(key)) {
                 htmlContent += `<div style="margin-bottom: 5px;"><strong>${key}:</strong> ${value}</div>`;
             }
         }
