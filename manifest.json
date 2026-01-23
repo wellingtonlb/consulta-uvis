@@ -4,7 +4,14 @@
   "short_name": "Busca UVIS/UBS",
   "description": "Localize rapidamente a UVIS, UBS de referência e Distrito Administrativo pelo CEP ou endereço em São Paulo.",
   "start_url": "./index.html",
+  "scope": "./",
+  "lang": "pt-BR",
   "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+    ],
   "background_color": "#ffffff",
   "theme_color": "#0d6efd",
   "orientation": "portrait",
@@ -31,14 +38,14 @@
       "sizes": "738x1517",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Tela Inicial de Busca"
+      "label": "Tela de Busca Mobile"
     },
     {
       "src": "img/print2celular.png",
       "sizes": "738x1526",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Resultados"
+      "label": "Resultado Mobile"
     },
     {
       "src": "img/print_wide.png",
@@ -49,6 +56,7 @@
     }
   ]
 }
+
 
 
 
