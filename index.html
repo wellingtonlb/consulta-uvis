@@ -167,6 +167,19 @@
                 </div>
             </div>
 
+            <div id="ubs-result-card" class="d-none mb-3 p-3 bg-white border border-success rounded shadow-sm animate__animated animate__fadeIn" style="border-left-width: 5px !important;">
+                <small class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">
+                    🏥 UBS de Referência
+                </small>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                    <div id="res-ubs" class="h6 fw-bold text-success mb-0">
+                        -
+                    </div>
+                    <button class="btn-copy" onclick="copiar(this, 'res-ubs')">📋</button>
+                </div>
+            </div>
+
+
             <div id="region-details" class="detail-card d-none animate__animated animate__fadeInUp">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="detail-title mb-0">FICHA TÉCNICA DA UNIDADE</span>
@@ -197,18 +210,20 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
 
+```html
 <script>
     const map = L.map('map').setView([-23.5505, -46.6333], 11);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap &copy; CARTO'
     }).addTo(map);
 
-    let geoJsonData = null;
+    let geoJsonData = null;  
+    let geoJsonUBS = null;  
     let marker = null;
     let geoJsonLayer = null;
     let bairroCache = ""; 
 
-    const distinctColors = [
+     const distinctColors = [
         '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', 
         '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', 
         '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', 
@@ -226,7 +241,7 @@
 
     function styleFeature(feature) {
         let nomeParaCor = "default";
-        for (const [key, value] of Object.entries(feature.properties)) {
+         for (const [key, value] of Object.entries(feature.properties)) {
             if (key.toLowerCase().includes('uvis')) {
                 nomeParaCor = value;
                 break;
@@ -262,13 +277,10 @@
 
     function onFeatureClick(e) {
         map.fitBounds(e.target.getBounds());
-        exibirDetalhesRegiao(e.target.feature.properties);
-        atualizarPainelResumo(e.target.feature.properties);
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
         
-        // ZERA OS CAMPOS DE ENDEREÇO AO CLICAR NO MAPA
-        document.getElementById('res-log').innerText = "-";
-        document.getElementById('res-bairro').innerText = "-";
-        document.getElementById('res-cep').innerText = "-";
+         atualizarMapa(lat, lng);
     }
 
     function onEachFeature(feature, layer) {
@@ -292,26 +304,30 @@
         });
     }
 
-    fetch('./dados.json')
-        .then(response => response.json())
-        .then(data => {
-            geoJsonData = data;
-            geoJsonLayer = L.geoJson(data, {
-                style: styleFeature,
-                onEachFeature: onEachFeature
-            }).addTo(map);
+     Promise.all([
+        fetch('./dados.json').then(r => r.json()),
+        fetch('./Territorios_UBS.geojson').then(r => r.json())
+    ])
+    .then(([dataUVIS, dataUBS]) => {
+         geoJsonData = dataUVIS;
+        geoJsonLayer = L.geoJson(dataUVIS, {
+            style: styleFeature,
+            onEachFeature: onEachFeature
+        }).addTo(map);
 
-            if(geoJsonLayer.getBounds().isValid()){
-                map.fitBounds(geoJsonLayer.getBounds());
-            }
-            console.log("Dados carregados.");
-        })
-        .catch(err => {
-            console.error(err);
-            alert("Erro ao carregar 'dados.json'.");
-        });
+        if(geoJsonLayer.getBounds().isValid()){
+            map.fitBounds(geoJsonLayer.getBounds());
+        }
 
-    document.getElementById('cep').addEventListener('blur', function() {
+         geoJsonUBS = dataUBS;
+        console.log("Todas as bases carregadas (UVIS + UBS).");
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Erro ao carregar arquivos GeoJSON (dados.json ou Territorios_UBS.geojson). Verifique os nomes.");
+    });
+
+     document.getElementById('cep').addEventListener('blur', function() {
         let cep = this.value.replace(/\D/g, '');
         if (cep.length === 8) {
             fetch(`https://viacep.com.br/ws/${cep}/json/`)
@@ -335,6 +351,7 @@
         document.getElementById('loading').classList.remove('d-none');
         document.getElementById('search-results').classList.add('d-none');
         document.getElementById('region-details').classList.add('d-none');
+        document.getElementById('ubs-result-card').classList.add('d-none');  
 
         const query = `${rua}, ${num}, São Paulo, Brasil`;
         
@@ -385,24 +402,50 @@
         verificarPoligono(lat, lon);
     }
 
-    function verificarPoligono(lat, lon) {
-        if (!geoJsonData) return;
+     function verificarPoligono(lat, lon) {
+        if (!geoJsonData || !geoJsonUBS) return;  
 
         const ponto = turf.point([lon, lat]);
-        let foundFeature = null;
-
+        
+         let featureUVIS = null;
         turf.featureEach(geoJsonData, function (feat) {
             if (turf.booleanPointInPolygon(ponto, feat)) {
-                foundFeature = feat;
+                featureUVIS = feat;
             }
         });
 
-        if (foundFeature) {
-            atualizarPainelResumo(foundFeature.properties);
-            exibirDetalhesRegiao(foundFeature.properties);
+         let nomeUBS = "Não localizada na base";
+        let achouUBS = false;
+        
+        turf.featureEach(geoJsonUBS, function (feat) {
+             if (!achouUBS && turf.booleanPointInPolygon(ponto, feat)) {
+                 const p = feat.properties;
+                nomeUBS = p.Name || p.name || p.NOME || p.NO_FANTASIA || p.description || "Sem Nome";
+                achouUBS = true;
+            }
+        });
+
+         const divUbs = document.getElementById('ubs-result-card');
+        const txtUbs = document.getElementById('res-ubs');
+        
+        if (achouUBS) {
+            txtUbs.innerText = nomeUBS;
+            txtUbs.classList.remove('text-muted');
+            txtUbs.classList.add('text-success');
+        } else {
+            txtUbs.innerText = "Fora da área de cobertura das UBS mapeadas";
+            txtUbs.classList.add('text-muted');
+            txtUbs.classList.remove('text-success');
+        }
+        divUbs.classList.remove('d-none');
+
+
+         if (featureUVIS) {
+            atualizarPainelResumo(featureUVIS.properties);
+            exibirDetalhesRegiao(featureUVIS.properties);
             document.getElementById('search-results').classList.remove('d-none');
         } else {
-            document.getElementById('res-uvis').innerText = "Fora da área mapeada";
+             document.getElementById('res-uvis').innerText = "Fora da área mapeada";
             document.getElementById('res-da').innerText = "-";
             document.getElementById('res-email').innerText = "-";
             document.getElementById('search-results').classList.remove('d-none');
@@ -456,22 +499,7 @@
         const container = document.getElementById('detail-content');
         let htmlContent = "";
         
-        // CAMPOS QUE SERÃO IGNORADOS NA LISTA
-        const ignorar = [
-            'name', 
-            'description', 
-            'geometry', 
-            'type', 
-            'styleUrl', 
-            'styleHash', 
-            'styleMap',
-            'stroke', 
-            'stroke-width', 
-            'stroke-opacity', 
-            'fill', 
-            'fill-opacity',
-            'icon'
-        ];
+        const ignorar = ['name', 'description', 'geometry', 'type', 'styleUrl', 'styleHash', 'styleMap', 'stroke', 'stroke-width', 'stroke-opacity', 'fill', 'fill-opacity', 'icon'];
 
         for (const [key, value] of Object.entries(props)) {
             if (!ignorar.includes(key)) {
