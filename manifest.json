@@ -1,6 +1,6 @@
 {
   "name": "Localizador UVIS SP",
-  "short_name": "UVIS SP",
+  "short_name": "Busca UVIS/UBS",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -21,3 +21,4 @@
     }
   ]
 }
+
