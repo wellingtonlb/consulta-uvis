@@ -24,19 +24,20 @@
   ],
   "screenshots": [
     {
-      "src": "print1celular.png",
+      "src": "img/print1celular.png",
       "sizes": "738x1517",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Tela Inicial de Busca"
     },
     {
-      "src": "print2celular.png",
+      "src": "img/print2celular.png",
       "sizes": "738x1526",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Resultados com Mapa"
+      "label": "Resultados"
     }
   ]
 }
+
 
