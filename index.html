@@ -214,7 +214,7 @@
     }).addTo(map);
 
     let geoJsonData = null;  
-    let geoJsonUBS = null;  
+    let geoJsonUBS = null;   
     let marker = null;
     let geoJsonLayer = null;
     let bairroCache = ""; 
@@ -231,8 +231,7 @@
         for (let i = 0; i < str.length; i++) {
             hash = str.charCodeAt(i) + ((hash << 5) - hash);
         }
-        const index = Math.abs(hash) % distinctColors.length;
-        return distinctColors[index];
+        return distinctColors[Math.abs(hash) % distinctColors.length];
     }
 
     function styleFeature(feature) {
@@ -243,24 +242,18 @@
                 break;
             }
         }
-        const baseColor = getColor(String(nomeParaCor));
         return {
-            fillColor: baseColor,
+            fillColor: getColor(String(nomeParaCor)),
             weight: 1,
             opacity: 1,
             color: '#888',
-            dashArray: '',
             fillOpacity: 0.1 
         };
     }
 
-    function highlightFeature(e) {
+     function highlightFeature(e) {
         const layer = e.target;
-        layer.setStyle({
-            weight: 3,
-            color: '#666',
-            fillOpacity: 0.3 
-        });
+        layer.setStyle({ weight: 3, color: '#666', fillOpacity: 0.3 });
         layer.bringToFront();
         if (marker) marker.setZIndexOffset(1000);
     }
@@ -269,15 +262,15 @@
         geoJsonLayer.resetStyle(e.target);
     }
 
- 
     function onFeatureClick(e) {
-         
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
-        
          atualizarMapa(lat, lng, false);
+         limparDadosEndereco();
+    }
 
-         document.getElementById('res-log').innerText = "Selecionado no Mapa";
+    function limparDadosEndereco() {
+        document.getElementById('res-log').innerText = "Selecionado no Mapa";
         document.getElementById('res-cep').innerText = "-";
         document.getElementById('res-bairro').innerText = "-";
     }
@@ -295,7 +288,6 @@
             direction: "center",
             className: "bg-transparent border-0 text-dark fw-bold"
         });
-
         layer.on({
             mouseover: highlightFeature,
             mouseout: resetHighlight,
@@ -303,39 +295,39 @@
         });
     }
 
-      Promise.all([
-        fetch('./dados.json').then(r => r.json()),
-        fetch('./Territorios_UBS.geojson').then(r => r.json())
-    ])
-    .then(([dataUVIS, dataUBS]) => {
-          geoJsonData = dataUVIS;
-        geoJsonLayer = L.geoJson(dataUVIS, {
-            style: styleFeature,
-            onEachFeature: onEachFeature
-        }).addTo(map);
+     
+     fetch('./dados.json')
+        .then(r => r.json())
+        .then(data => {
+            geoJsonData = data;
+            geoJsonLayer = L.geoJson(data, {
+                style: styleFeature,
+                onEachFeature: onEachFeature
+            }).addTo(map);
+            
+            if(geoJsonLayer.getBounds().isValid()){
+                map.fitBounds(geoJsonLayer.getBounds());
+            }
+            console.log("✅ Sucesso: Base UVIS carregada.");
+        })
+        .catch(err => {
+            console.error(err);
+            alert("❌ ERRO: Não foi possível carregar 'dados.json'.");
+        });
 
-        if(geoJsonLayer.getBounds().isValid()){
-            map.fitBounds(geoJsonLayer.getBounds());
-        }
+     fetch('./Territorios_UBS.geojson')
+        .then(r => {
+            if(!r.ok) throw new Error("Arquivo não encontrado");
+            return r.json();
+        })
+        .then(data => {
+            geoJsonUBS = data;
+            console.log("✅ Sucesso: Base UBS carregada (Memória).");
+        })
+        .catch(err => {
+            console.warn("⚠️ Aviso: Falha ao carregar 'Territorios_UBS.geojson'. A funcionalidade de UBS ficará desativada.");
+        });
 
-          geoJsonUBS = dataUBS;
-        console.log("Todas as bases carregadas (UVIS + UBS).");
-    })
-    .catch(err => {
-        console.error("Erro no carregamento:", err);
-         fetch('./dados.json')
-            .then(r => r.json())
-            .then(data => {
-                if(!geoJsonData) {
-                    geoJsonData = data;
-                    geoJsonLayer = L.geoJson(data, {
-                        style: styleFeature,
-                        onEachFeature: onEachFeature
-                    }).addTo(map);
-                    alert("Aviso: A base de UBS falhou, mas o mapa de UVIS foi carregado.");
-                }
-            }).catch(e => alert("Erro crítico: Nenhum mapa carregado. Verifique os arquivos JSON."));
-    });
 
      document.getElementById('cep').addEventListener('blur', function() {
         let cep = this.value.replace(/\D/g, '');
@@ -361,11 +353,10 @@
         document.getElementById('loading').classList.remove('d-none');
         document.getElementById('search-results').classList.add('d-none');
         document.getElementById('region-details').classList.add('d-none');
-        document.getElementById('ubs-result-card').classList.add('d-none');  
+        document.getElementById('ubs-result-card').classList.add('d-none');
 
         const query = `${rua}, ${num}, São Paulo, Brasil`;
         
- 
         fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&limit=1&email=wellingtonlb22@outlook.com`)
             .then(res => {
                 if (!res.ok) throw new Error("Erro HTTP: " + res.status);
@@ -379,6 +370,7 @@
                     const lon = parseFloat(data[0].lon);
 
                     document.getElementById('res-log').innerText = rua + (num ? `, ${num}` : '');
+                    
                     let cepEncontrado = cepInput;
                     if (!cepEncontrado && data[0].address && data[0].address.postcode) {
                         cepEncontrado = data[0].address.postcode;
@@ -387,20 +379,20 @@
                     
                     let bairroMapa = "";
                     if (data[0].address) {
-                        bairroMapa = data[0].address.suburb || data[0].address.neighbourhood || data[0].address.residential || data[0].address.city_district || "";
+                        bairroMapa = data[0].address.suburb || data[0].address.neighbourhood || data[0].address.residential || "";
                     }
                     const bairroFinal = bairroCache || bairroMapa || "Não identificado";
                     document.getElementById('res-bairro').innerText = bairroFinal;
 
-                     atualizarMapa(lat, lon, true);
+                    atualizarMapa(lat, lon, true);
                 } else {
-                    alert("Endereço não encontrado.");
+                    alert("Endereço não encontrado pelo localizador.");
                 }
             })
             .catch((err) => {
                 document.getElementById('loading').classList.add('d-none');
                 console.error(err);
-                alert("Erro de conexão com o mapa.");
+                alert("Ocorreu um erro ao buscar o endereço.");
             });
     }
 
@@ -409,7 +401,7 @@
         marker = L.marker([lat, lon], { draggable: true }).addTo(map);
         marker.setZIndexOffset(1000);
         
-         if (darZoom) {
+        if (darZoom) {
             map.setView([lat, lon], 16);
         }
         
@@ -420,27 +412,34 @@
         verificarPoligono(lat, lon);
     }
 
-     function verificarPoligono(lat, lon) {
-         if (!geoJsonData) return;  
+    function verificarPoligono(lat, lon) {
+        if (!geoJsonData) return;
 
         const ponto = turf.point([lon, lat]);
         
          let featureUVIS = null;
         turf.featureEach(geoJsonData, function (feat) {
+             if (feat.geometry.type !== 'Polygon' && feat.geometry.type !== 'MultiPolygon') return;
+            
             if (turf.booleanPointInPolygon(ponto, feat)) {
                 featureUVIS = feat;
             }
         });
 
-          let nomeUBS = "Não localizada na base";
-         let achouUBS = false;
+         let nomeUBS = "Não identificada";
+        let achouUBS = false;
         
         if (geoJsonUBS) {
             turf.featureEach(geoJsonUBS, function (feat) {
-                 if (!achouUBS && turf.booleanPointInPolygon(ponto, feat)) {
+                 if (achouUBS) return;  
+
+                  if (feat.geometry.type !== 'Polygon' && feat.geometry.type !== 'MultiPolygon') return;
+
+                 if (turf.booleanPointInPolygon(ponto, feat)) {
                      const p = feat.properties;
-                    nomeUBS = p.Name || p.name || p.NOME || p.NO_FANTASIA || p.description || "Sem Nome";
-                    achouUBS = true;
+                     nomeUBS = p.Name || p.name || p.NOME || p.NO_FANTASIA || p.description || "Sem Nome";
+                      nomeUBS = nomeUBS.replace(/<[^>]*>?/gm, ''); 
+                     achouUBS = true;
                 }
             });
         }
@@ -448,19 +447,22 @@
          const divUbs = document.getElementById('ubs-result-card');
         const txtUbs = document.getElementById('res-ubs');
         
-        if (achouUBS) {
-            txtUbs.innerText = nomeUBS;
-            txtUbs.classList.remove('text-muted');
-            txtUbs.classList.add('text-success');
+        if (geoJsonUBS && featureUVIS) {
+            divUbs.classList.remove('d-none');
+            if (achouUBS) {
+                txtUbs.innerText = nomeUBS;
+                txtUbs.classList.remove('text-muted');
+                txtUbs.classList.add('text-success');
+            } else {
+                txtUbs.innerText = "Fora da área de cobertura das UBS mapeadas";
+                txtUbs.classList.add('text-muted');
+                txtUbs.classList.remove('text-success');
+            }
         } else {
-            txtUbs.innerText = geoJsonUBS ? "Fora da área de cobertura das UBS mapeadas" : "Base de UBS não carregada";
-            txtUbs.classList.add('text-muted');
-            txtUbs.classList.remove('text-success');
+            divUbs.classList.add('d-none');
         }
-        divUbs.classList.remove('d-none');
 
-
-         if (featureUVIS) {
+          if (featureUVIS) {
             atualizarPainelResumo(featureUVIS.properties);
             exibirDetalhesRegiao(featureUVIS.properties);
             document.getElementById('search-results').classList.remove('d-none');
@@ -470,6 +472,7 @@
             document.getElementById('res-email').innerText = "-";
             document.getElementById('search-results').classList.remove('d-none');
             document.getElementById('region-details').classList.add('d-none');
+            divUbs.classList.add('d-none');
         }
     }
 
@@ -487,15 +490,12 @@
                 let pontos = 0;
                 if (k.includes('nome') || k.includes('nm') || k.includes('desc')) pontos += 20; 
                 if (isNaN(v)) pontos += 10; 
-                if (k.includes('cod') || k.includes('id')) pontos -= 10; 
                 candidatosUVIS.push({ valor: v, pontos: pontos });
             }
 
             if (k.includes('da') || k.includes('distrito')) {
                 let pontos = 0;
-                if (k.includes('nome') || k.includes('nm') || k.includes('desc')) pontos += 20;
-                if (isNaN(v)) pontos += 10;
-                if (k.includes('cod') || k.includes('id')) pontos -= 10;
+                if (k.includes('nome') || k.includes('nm')) pontos += 20;
                 candidatosDA.push({ valor: v, pontos: pontos });
             }
 
@@ -518,7 +518,6 @@
     function exibirDetalhesRegiao(props) {
         const container = document.getElementById('detail-content');
         let htmlContent = "";
-        
         const ignorar = ['name', 'description', 'geometry', 'type', 'styleUrl', 'styleHash', 'styleMap', 'stroke', 'stroke-width', 'stroke-opacity', 'fill', 'fill-opacity', 'icon'];
 
         for (const [key, value] of Object.entries(props)) {
@@ -526,7 +525,6 @@
                 htmlContent += `<div style="margin-bottom: 5px;"><strong>${key}:</strong> ${value}</div>`;
             }
         }
-
         container.innerHTML = htmlContent;
         document.getElementById('region-details').classList.remove('d-none');
     }
@@ -558,3 +556,4 @@
 
 </body>
 </html>
+
