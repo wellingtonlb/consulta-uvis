@@ -3,7 +3,7 @@
         <h3 class="fw-bold text-primary">Localizador UVIS e DA</h3>
         <p class="text-muted small mb-3">Consulta de Território</p>
 
-> **Prefere usar sem abrir o site?** [**Baixe a Extensão Oficial na Chrome Web Store ↗**](LINK)
+> **Prefere usar sem abrir o site?** [**Baixe a Extensão na Chrome Web Store ↗**](LINK)
 
 Ferramenta web desenvolvida para facilitar a identificação da **Unidade de Vigilância em Saúde (UVIS)** e do **Distrito Administrativo (DA)** correspondentes a um determinado endereço ou CEP no município de São Paulo.
 
@@ -70,7 +70,7 @@ Ao clicar sobre qualquer área colorida do mapa, uma ficha técnica completa é 
 
 ---
 
-## 📄 Licença
+## Licença
 
 Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
