@@ -134,6 +134,16 @@
                     <button class="btn-copy" onclick="copiar(this, 'res-da')">📋</button>
                 </div>
 
+                <div id="ubs-result-card" class="d-none mb-2 p-2 bg-white border border-success rounded shadow-sm" style="border-left-width: 5px !important;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="res-label text-success">🏥 UBS de Referência</span>
+                            <div id="res-ubs" class="fw-bold text-success" style="font-size: 0.9rem;">-</div>
+                        </div>
+                        <button class="btn-copy" onclick="copiar(this, 'res-ubs')">📋</button>
+                    </div>
+                </div>
+
                 <div class="result-row">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">Endereço Pesquisado</span>
@@ -167,19 +177,6 @@
                 </div>
             </div>
 
-            <div id="ubs-result-card" class="d-none mb-3 p-3 bg-white border border-success rounded shadow-sm animate__animated animate__fadeIn" style="border-left-width: 5px !important;">
-                <small class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">
-                    🏥 UBS de Referência
-                </small>
-                <div class="d-flex justify-content-between align-items-center mt-1">
-                    <div id="res-ubs" class="h6 fw-bold text-success mb-0">
-                        -
-                    </div>
-                    <button class="btn-copy" onclick="copiar(this, 'res-ubs')">📋</button>
-                </div>
-            </div>
-
-
             <div id="region-details" class="detail-card d-none animate__animated animate__fadeInUp">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="detail-title mb-0">FICHA TÉCNICA DA UNIDADE</span>
@@ -210,7 +207,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
 
-```html
 <script>
     const map = L.map('map').setView([-23.5505, -46.6333], 11);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -247,9 +243,7 @@
                 break;
             }
         }
-        
         const baseColor = getColor(String(nomeParaCor));
-
         return {
             fillColor: baseColor,
             weight: 1,
@@ -275,12 +269,20 @@
         geoJsonLayer.resetStyle(e.target);
     }
 
+    
     function onFeatureClick(e) {
-        map.fitBounds(e.target.getBounds());
+        
+        
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
         
-         atualizarMapa(lat, lng);
+         
+        atualizarMapa(lat, lng, false); 
+
+         
+        document.getElementById('res-log').innerText = "Selecionado no Mapa";
+        document.getElementById('res-cep').innerText = "-";
+        document.getElementById('res-bairro').innerText = "-";
     }
 
     function onEachFeature(feature, layer) {
@@ -324,7 +326,7 @@
     })
     .catch(err => {
         console.error(err);
-        alert("Erro ao carregar arquivos GeoJSON (dados.json ou Territorios_UBS.geojson). Verifique os nomes.");
+        alert("Erro ao carregar arquivos GeoJSON. Verifique se 'dados.json' e 'Territorios_UBS.geojson' estão na pasta.");
     });
 
      document.getElementById('cep').addEventListener('blur', function() {
@@ -355,8 +357,16 @@
 
         const query = `${rua}, ${num}, São Paulo, Brasil`;
         
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&limit=1`)
-            .then(res => res.json())
+         fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&limit=1`, {
+            headers: {
+                "User-Agent": "Localizador-UVIS-SP (contato: wellingtonlb22@outlook.com)",
+                "Accept-Language": "pt-BR"
+            }
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Erro HTTP: " + res.status);
+                return res.json();
+            })
             .then(data => {
                 document.getElementById('loading').classList.add('d-none');
                 
@@ -378,22 +388,26 @@
                     const bairroFinal = bairroCache || bairroMapa || "Não identificado";
                     document.getElementById('res-bairro').innerText = bairroFinal;
 
-                    atualizarMapa(lat, lon);
+                     atualizarMapa(lat, lon, true);
                 } else {
                     alert("Endereço não encontrado.");
                 }
             })
-            .catch(() => {
+            .catch((err) => {
                 document.getElementById('loading').classList.add('d-none');
-                alert("Erro de conexão.");
+                console.error(err);
+                alert("Erro de conexão ou endereço não encontrado.");
             });
     }
 
-    function atualizarMapa(lat, lon) {
+     function atualizarMapa(lat, lon, darZoom = false) {
         if (marker) map.removeLayer(marker);
         marker = L.marker([lat, lon], { draggable: true }).addTo(map);
         marker.setZIndexOffset(1000);
-        map.setView([lat, lon], 16);
+        
+         if (darZoom) {
+            map.setView([lat, lon], 16);
+        }
         
         marker.on('dragend', function(e) {
             verificarPoligono(e.target.getLatLng().lat, e.target.getLatLng().lng);
@@ -538,5 +552,3 @@
 
 </body>
 </html>
-
-
