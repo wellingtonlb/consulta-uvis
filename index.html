@@ -269,18 +269,15 @@
         geoJsonLayer.resetStyle(e.target);
     }
 
-    
+ 
     function onFeatureClick(e) {
-        
-        
+         
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
         
-         
-        atualizarMapa(lat, lng, false); 
+         atualizarMapa(lat, lng, false);
 
-         
-        document.getElementById('res-log').innerText = "Selecionado no Mapa";
+         document.getElementById('res-log').innerText = "Selecionado no Mapa";
         document.getElementById('res-cep').innerText = "-";
         document.getElementById('res-bairro').innerText = "-";
     }
@@ -306,12 +303,12 @@
         });
     }
 
-     Promise.all([
+      Promise.all([
         fetch('./dados.json').then(r => r.json()),
         fetch('./Territorios_UBS.geojson').then(r => r.json())
     ])
     .then(([dataUVIS, dataUBS]) => {
-         geoJsonData = dataUVIS;
+          geoJsonData = dataUVIS;
         geoJsonLayer = L.geoJson(dataUVIS, {
             style: styleFeature,
             onEachFeature: onEachFeature
@@ -321,12 +318,23 @@
             map.fitBounds(geoJsonLayer.getBounds());
         }
 
-         geoJsonUBS = dataUBS;
+          geoJsonUBS = dataUBS;
         console.log("Todas as bases carregadas (UVIS + UBS).");
     })
     .catch(err => {
-        console.error(err);
-        alert("Erro ao carregar arquivos GeoJSON. Verifique se 'dados.json' e 'Territorios_UBS.geojson' estão na pasta.");
+        console.error("Erro no carregamento:", err);
+         fetch('./dados.json')
+            .then(r => r.json())
+            .then(data => {
+                if(!geoJsonData) {
+                    geoJsonData = data;
+                    geoJsonLayer = L.geoJson(data, {
+                        style: styleFeature,
+                        onEachFeature: onEachFeature
+                    }).addTo(map);
+                    alert("Aviso: A base de UBS falhou, mas o mapa de UVIS foi carregado.");
+                }
+            }).catch(e => alert("Erro crítico: Nenhum mapa carregado. Verifique os arquivos JSON."));
     });
 
      document.getElementById('cep').addEventListener('blur', function() {
@@ -357,12 +365,8 @@
 
         const query = `${rua}, ${num}, São Paulo, Brasil`;
         
-         fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&limit=1`, {
-            headers: {
-                "User-Agent": "Localizador-UVIS-SP (contato: wellingtonlb22@outlook.com)",
-                "Accept-Language": "pt-BR"
-            }
-        })
+ 
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&limit=1&email=wellingtonlb22@outlook.com`)
             .then(res => {
                 if (!res.ok) throw new Error("Erro HTTP: " + res.status);
                 return res.json();
@@ -396,11 +400,11 @@
             .catch((err) => {
                 document.getElementById('loading').classList.add('d-none');
                 console.error(err);
-                alert("Erro de conexão ou endereço não encontrado.");
+                alert("Erro de conexão com o mapa.");
             });
     }
 
-     function atualizarMapa(lat, lon, darZoom = false) {
+    function atualizarMapa(lat, lon, darZoom = false) {
         if (marker) map.removeLayer(marker);
         marker = L.marker([lat, lon], { draggable: true }).addTo(map);
         marker.setZIndexOffset(1000);
@@ -417,7 +421,7 @@
     }
 
      function verificarPoligono(lat, lon) {
-        if (!geoJsonData || !geoJsonUBS) return;  
+         if (!geoJsonData) return;  
 
         const ponto = turf.point([lon, lat]);
         
@@ -428,16 +432,18 @@
             }
         });
 
-         let nomeUBS = "Não localizada na base";
-        let achouUBS = false;
+          let nomeUBS = "Não localizada na base";
+         let achouUBS = false;
         
-        turf.featureEach(geoJsonUBS, function (feat) {
-             if (!achouUBS && turf.booleanPointInPolygon(ponto, feat)) {
-                 const p = feat.properties;
-                nomeUBS = p.Name || p.name || p.NOME || p.NO_FANTASIA || p.description || "Sem Nome";
-                achouUBS = true;
-            }
-        });
+        if (geoJsonUBS) {
+            turf.featureEach(geoJsonUBS, function (feat) {
+                 if (!achouUBS && turf.booleanPointInPolygon(ponto, feat)) {
+                     const p = feat.properties;
+                    nomeUBS = p.Name || p.name || p.NOME || p.NO_FANTASIA || p.description || "Sem Nome";
+                    achouUBS = true;
+                }
+            });
+        }
 
          const divUbs = document.getElementById('ubs-result-card');
         const txtUbs = document.getElementById('res-ubs');
@@ -447,7 +453,7 @@
             txtUbs.classList.remove('text-muted');
             txtUbs.classList.add('text-success');
         } else {
-            txtUbs.innerText = "Fora da área de cobertura das UBS mapeadas";
+            txtUbs.innerText = geoJsonUBS ? "Fora da área de cobertura das UBS mapeadas" : "Base de UBS não carregada";
             txtUbs.classList.add('text-muted');
             txtUbs.classList.remove('text-success');
         }
