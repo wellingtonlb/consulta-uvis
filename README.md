@@ -1,11 +1,11 @@
-# Localizador UVIS e DA - Cidade de São Paulo
+# Localizador UVIS e UBS - Cidade de São Paulo
 <div class="text-center mb-4">
         <h3 class="fw-bold text-primary">Localizador UVIS e DA</h3>
         <p class="text-muted small mb-3">Consulta de Território</p>
 
 > **Prefere usar sem abrir o site?** [**Baixe a Extensão na Chrome Web Store ↗**](LINK)
 
-Ferramenta web desenvolvida para facilitar a identificação da **Unidade de Vigilância em Saúde (UVIS)** e do **Distrito Administrativo (DA)** correspondentes a um determinado endereço ou CEP no município de São Paulo.
+Ferramenta web desenvolvida para facilitar a identificação da **Unidade de Vigilância em Saúde (UVIS)**, do **Distrito Administrativo (DA)**  e da **Unidade Básica de Saúde (UBS)** correspondentes a um determinado endereço ou CEP no município de São Paulo.
 
 **[Acesso Online Aqui](https://wellingtonlb.github.io/consulta-uvis/)**
 
