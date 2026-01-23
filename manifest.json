@@ -9,6 +9,7 @@
   "theme_color": "#0d6efd",
   "orientation": "portrait",
   "prefer_related_applications": false,
+  "related_applications": [],
   "categories": ["productivity", "utilities"],
   "icons": [
     {
@@ -38,8 +39,16 @@
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Resultados"
+    },
+    {
+      "src": "img/print_wide.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Versão Desktop"
     }
   ]
 }
+
 
 
