@@ -1,4 +1,5 @@
 {
+  "id": "./index.html",
   "name": "Localizador UVIS SP",
   "short_name": "Busca UVIS/UBS",
   "description": "Localize rapidamente a UVIS, UBS de referência e Distrito Administrativo pelo CEP ou endereço em São Paulo.",
@@ -7,6 +8,7 @@
   "background_color": "#ffffff",
   "theme_color": "#0d6efd",
   "orientation": "portrait",
+  "prefer_related_applications": false,
   "categories": ["productivity", "utilities"],
   "icons": [
     {
