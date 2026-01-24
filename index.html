@@ -210,6 +210,7 @@
                     <button class="btn-copy" onclick="copiar(this, 'res-cep')">📋</button>
                 </div>
 
+            
                 <div class="result-row">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">Cidade</span>
@@ -689,12 +690,21 @@ function alternarVisualizacao() {
             btn.innerHTML = "🗺️"; 
         }
     }
+
+ document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            buscarEndereco();
+        }
+    });
+});
     
 </script>
     
 <button id="toggle-view-btn" class="btn btn-primary" onclick="alternarVisualizacao()">🗺️</button>
 </body>
 </html>
+
 
 
 
