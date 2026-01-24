@@ -29,10 +29,11 @@
             margin-bottom: 8px; 
         }
         
-        .border-uvis { border-left: 4px solid #0d6efd; }
-        .border-da { border-left: 4px solid #6610f2; }
-        .border-ubs { border-left: 4px solid #198754; }
-        .border-std { border-left: 4px solid #adb5bd; }
+        /* Cores das bordas laterais */
+        .border-uvis { border-left: 4px solid #0d6efd; } /* Azul */
+        .border-da { border-left: 4px solid #6610f2; }   /* Roxo */
+        .border-ubs { border-left: 4px solid #198754; }  /* Verde */
+        .border-std { border-left: 4px solid #adb5bd; }  /* Cinza */
 
         .res-content { display: flex; flex-direction: column; width: 100%; }
         .res-label { font-size: 0.75rem; text-transform: uppercase; color: #6c757d; font-weight: 700; margin-bottom: 2px; }
@@ -61,7 +62,7 @@
                 
                 <div class="mb-2">
                     <label class="form-label small fw-bold text-muted">CEP</label>
-                    <input type="text" id="cep" class="form-control" placeholder="00000-000 ou 00000000" maxlength="9">
+                    <input type="text" id="cep" class="form-control" placeholder="00000-000" maxlength="9">
                 </div>
                 
                 <div class="row g-2 mb-3">
@@ -158,19 +159,20 @@
 <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 
 <script>
+     
     let map, marker, uvisLayer, ubsLayer;
     let geoJsonUVIS = null;
     let geoJsonUBS = null;
     let bairroCache = "";
 
-    function initMap() {
+     function initMap() {
         map = L.map('map').setView([-23.5505, -46.6333], 11);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
     }
 
-    Promise.all([
+     Promise.all([
         fetch('./Territórios_UVIS.geojson').then(r => r.json()),
         fetch('./Territorios_UBS.geojson').then(r => r.json())
     ]).then(([dataUVIS, dataUBS]) => {
@@ -179,7 +181,7 @@
         console.log("Bases Carregadas (Site)");
     }).catch(err => console.error("Erro bases:", err));
 
-    document.getElementById('cep').addEventListener('blur', function() {
+     document.getElementById('cep').addEventListener('blur', function() {
         let cep = this.value.replace(/\D/g, '');
         if (cep.length === 8) {
             fetch(`https://viacep.com.br/ws/${cep}/json/`)
@@ -188,8 +190,7 @@
                     if (!data.erro) {
                         document.getElementById('logradouro').value = data.logradouro;
                         bairroCache = data.bairro;
-                        const elCidade = document.getElementById('res-cidade');
-                        if(elCidade) elCidade.innerText = data.localidade || "São Paulo";
+                        document.getElementById('res-cidade').innerText = data.localidade || "São Paulo";  
                     }
                 });
         }
@@ -241,44 +242,44 @@
             const lat = parseFloat(local.lat);
             const lon = parseFloat(local.lon);
 
-            document.getElementById('res-log').innerText = `${rua}, ${num}`;
+             document.getElementById('res-log').innerText = `${rua}, ${num}`;
             
-            let cepFinal = cepVal;
+             let cepFinal = cepVal;
             if(!cepFinal && local.address && local.address.postcode) cepFinal = local.address.postcode;
             document.getElementById('res-cep').innerText = cepFinal || "-";
 
-            let bairroMap = local.address ? (local.address.suburb || local.address.neighbourhood || "") : "";
+             let bairroMap = local.address ? (local.address.suburb || local.address.neighbourhood || "") : "";
             document.getElementById('res-bairro').innerText = bairroCache || bairroMap || "Não identificado";
 
-            let cidade = "São Paulo";
+             let cidade = "São Paulo";
             if (local.address) {
                 cidade = local.address.city || local.address.municipality || local.address.town || local.address.village || "São Paulo";
             }
-            const elCidade = document.getElementById('res-cidade');
-            if(elCidade) elCidade.innerText = cidade;
+            document.getElementById('res-cidade').innerText = cidade;
 
             results.style.display = 'block';
 
-            if (marker) map.removeLayer(marker);
+             if (marker) map.removeLayer(marker);
             if (uvisLayer) map.removeLayer(uvisLayer);
             if (ubsLayer) map.removeLayer(ubsLayer);
 
             map.setView([lat, lon], 15);
             marker = L.marker([lat, lon]).addTo(map).bindPopup("Local Consultado").openPopup();
 
-            if (window.turf && geoJsonUVIS && geoJsonUBS) {
+             if (window.turf && geoJsonUVIS && geoJsonUBS) {
                 const pt = turf.point([lon, lat]);
                 
-                let uvisFound = null;
+                 let uvisFound = null;
+                let daFound = "Fora de SP";
                 
-                let candidatosDA = [];
+                 let candidatosDA = [];
 
                 turf.featureEach(geoJsonUVIS, (feat) => {
                     if (turf.booleanPointInPolygon(pt, feat)) {
                         uvisFound = feat;
                         const props = feat.properties;
 
-                        for (const [k, v] of Object.entries(props)) {
+                         for (const [k, v] of Object.entries(props)) {
                             const key = k.toLowerCase();
                             const val = String(v).trim();
                             
@@ -286,7 +287,7 @@
                                 document.getElementById('res-uvis').innerText = val;
                             }
                             
-                            if (key.includes('da') || key.includes('distrito')) {
+                             if (key.includes('da') || key.includes('distrito')) {
                                 let pontos = 0;
                                 if (key.includes('nome') || key.includes('nm')) pontos += 100;
                                 if (key.includes('cod') || key.includes('id')) pontos -= 100;
@@ -297,7 +298,7 @@
                     }
                 });
 
-                candidatosDA.sort((a,b) => b.pontos - a.pontos);
+                 candidatosDA.sort((a,b) => b.pontos - a.pontos);
                 if(candidatosDA.length > 0) {
                     document.getElementById('res-da').innerText = candidatosDA[0].valor;
                 } else {
@@ -306,7 +307,7 @@
 
                 if (!uvisFound) document.getElementById('res-uvis').innerText = "Fora da área";
 
-                let ubsName = "Não encontrada";
+                 let ubsName = "Não encontrada";
                 let ubsFeat = null;
                 
                 turf.featureEach(geoJsonUBS, (feat) => {
@@ -323,7 +324,7 @@
 
                 document.getElementById('res-ubs').innerText = ubsName;
 
-                if (uvisFound) {
+                 if (uvisFound) {
                     uvisLayer = L.geoJSON(uvisFound, { style: { color: '#0d6efd', fillOpacity: 0.1 } }).addTo(map);
                     map.fitBounds(uvisLayer.getBounds());
                     exibirDetalhes(uvisFound.properties);
