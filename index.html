@@ -87,6 +87,42 @@
 
         .border-uvis { border-left: 3px solid #0d6efd; }
         .border-da { border-left: 3px solid #198754; }
+
+        #toggle-view-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 2000;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            display: none;
+            font-size: 1.5rem;
+            border: none; 
+        }
+
+        @media (max-width: 768px) {
+            #toggle-view-btn { display: flex; align-items: center; justify-content: center; }
+            footer { display: none !important; }
+            
+            .col-md-3 {
+                position: absolute;
+                top: 0; left: 0; 
+                width: 100%; 
+                height: 100vh; 
+                background: rgba(244, 246, 249, 0.98); 
+                z-index: 1500;
+                padding-top: 10px;
+                transition: transform 0.3s ease; 
+            }
+            
+            .col-md-3.hidden {
+                display: none;
+            }
+        }
+        
+                
     </style>
 </head>
 <body class="py-3">
@@ -626,11 +662,26 @@ function limparTudo() {
          limparDadosEndereco();
     }
 
+function alternarVisualizacao() {
+        const menu = document.querySelector('.col-md-3');
+        const btn = document.getElementById('toggle-view-btn');
+        
+        if (!menu.classList.contains('hidden')) {
+            menu.classList.add('hidden');
+            btn.innerHTML = "📝";
+        } else {
+            menu.classList.remove('hidden');
+            btn.innerHTML = "🗺️"; 
+        }
+    }
+    
 
 </script>
-
+    
+<button id="toggle-view-btn" class="btn btn-primary" onclick="alternarVisualizacao()">🗺️</button>
 </body>
 </html>
+
 
 
 
