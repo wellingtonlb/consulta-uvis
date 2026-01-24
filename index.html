@@ -566,13 +566,25 @@
                 candidatosUVIS.push({ valor: v, pontos: pontos });
             }
 
-            if (k.includes('da') || k.includes('distrito')) {
+            if (k.includes('da') || k.includes('distrito') || k === 'nome' || k === 'ds_nome') {
                 let pontos = 0;
-                if (k.includes('nome') || k.includes('nm')) pontos += 50;  
+                
+                if (k.includes('da') || k.includes('distrito')) pontos += 20;
+                
+                if (k.includes('nome') || k.includes('nm')) pontos += 30;  
+                
                 if (k.includes('cod') || k.includes('id')) pontos -= 50;  
+
+                if (!isNaN(v.replace(',', '.'))) { 
+                     pontos -= 100; 
+                } else {
+                     pontos += 50; // Texto ganha pontos
+                }
+                
                 candidatosDA.push({ valor: v, pontos: pontos });
             }
 
+            
             if (k === 'email') {
                 emailFinal = v;
                 foundSpecificEmail = true;
@@ -584,11 +596,23 @@
         candidatosUVIS.sort((a, b) => b.pontos - a.pontos);
         candidatosDA.sort((a, b) => b.pontos - a.pontos);
 
-        document.getElementById('res-uvis').innerText = candidatosUVIS.length > 0 ? candidatosUVIS[0].valor : "Não identificado";
-        document.getElementById('res-da').innerText = candidatosDA.length > 0 ? candidatosDA[0].valor : "Não identificado";
+        const uvisVencedora = candidatosUVIS.length > 0 ? candidatosUVIS[0].valor : "Não identificado";
+        
+        let daVencedor = "Não identificado";
+        if (candidatosDA.length > 0) {
+            const melhorDistinto = candidatosDA.find(c => c.valor !== uvisVencedora && isNaN(c.valor));
+            if (melhorDistinto) {
+                daVencedor = melhorDistinto.valor;
+            } else {
+                daVencedor = candidatosDA[0].valor;
+            }
+        }
+
+        document.getElementById('res-uvis').innerText = uvisVencedora;
+        document.getElementById('res-da').innerText = daVencedor;
         document.getElementById('res-email').innerText = emailFinal;
     }
-
+    
     function exibirDetalhesRegiao(props) {
         const container = document.getElementById('detail-content');
         let htmlContent = "";
@@ -689,3 +713,4 @@
 </script>
 </body>
 </html>
+
