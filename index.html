@@ -584,10 +584,13 @@
             }
         }    
 
-        candidatosUVIS.sort((a, b) => b.pontos - a.pontos);
+             candidatosUVIS.sort((a, b) => b.pontos - a.pontos);
         candidatosDA.sort((a, b) => b.pontos - a.pontos);
 
-        const uvisVencedora = candidatosUVIS.length > 0 ? candidatosUVIS[0].valor : "Não identificado";
+        document.getElementById('res-uvis').innerText = candidatosUVIS.length > 0 ? candidatosUVIS[0].valor : "Não identificado";
+        document.getElementById('res-da').innerText = candidatosDA.length > 0 ? candidatosDA[0].valor : "Não identificado";
+        document.getElementById('res-email').innerText = emailFinal;
+    }
         
         let daVencedor = "Não identificado";
         if (candidatosDA.length > 0) {
@@ -704,6 +707,7 @@
 </script>
 </body>
 </html>
+
 
 
 
