@@ -121,8 +121,6 @@
                 display: none !important;
             }
         }
-        
-                
     </style>
 </head>
 <body class="py-3">
@@ -241,14 +239,14 @@
                 <span class="ms-2 small text-muted">Processando...</span>
             </div>
 
-         <footer class="mt-auto py-3 text-center">
+            <footer class="mt-auto py-3 text-center">
                 <div class="d-flex justify-content-center gap-3 mb-2">
                     <a href="https://chromewebstore.google.com/detail/ohhkpccnilhbbhgeidmajpghpjgpipcc?utm_source=item-share-cb" target="_blank" class="small text-muted text-decoration-none">
-                       Instalar Extensão
+                      Instalar Extensão
                     </a>
                     <span class="text-muted small">•</span>
                     <a href="privacidade.html" class="small text-muted text-decoration-none">
-                        Privacidade
+                      Privacidade
                     </a>
                 </div>
 
@@ -268,6 +266,8 @@
         </div>
     </div>
 </div>
+
+<button id="toggle-view-btn" class="btn btn-primary" onclick="alternarVisualizacao()">🗺️</button>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
@@ -405,22 +405,7 @@
         });
 
 
-     document.getElementById('cep').addEventListener('blur', function() {
-        let cep = this.value.replace(/\D/g, '');
-        if (cep.length === 8) {
-            fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                .then(res => res.json())
-                .then(data => {
-                    if (!data.erro) {
-                        document.getElementById('logradouro').value = data.logradouro;
-                        bairroCache = data.bairro;
-                        document.getElementById('res-cidade').innerText = data.localidade || "São Paulo";
-                    }
-                });
-        }
-    });
-
-   async function buscarEndereco() {
+    async function buscarEndereco() {
         let cepInput = document.getElementById('cep');
         let logradouroInput = document.getElementById('logradouro');
         let numeroInput = document.getElementById('numero');
@@ -448,12 +433,11 @@
             }
         }
 
-
-    if (logradouro === "") {
+        if (logradouro === "") {
             alert("⚠️ Digite o CEP ou o Nome da Rua.");
             return;
         }
-
+ 
         let query = `${logradouro}, ${numero}, São Paulo, Brazil`;
         if (cep.length === 8) query = `${logradouro}, ${numero}, ${cep}, Brazil`;
 
@@ -477,41 +461,6 @@
                         originalEvent: {}
                     });
 
-                    const resultsPanel = document.getElementById('search-results'); 
-                    if(resultsPanel) resultsPanel.classList.remove('d-none');
-                    
-                } else {
-                    alert("Endereço não localizado. Tente verificar o número.");
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                alert("Erro ao conectar com o mapa.");
-            });
-    }
-    
-        if (logradouro === "") {
-            alert("⚠️ Digite o CEP ou o Nome da Rua.");
-            return;
-        }
-
-        let query = `${logradouro}, ${numero}, São Paulo, Brazil`;
-        if (cep.length === 8) query = `${logradouro}, ${numero}, ${cep}, Brazil`;
-
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.length > 0) {
-                    let lat = data[0].lat;
-                    let lon = data[0].lon;
-                    
-                    map.setView([lat, lon], 17);
-        
-                    map.fire('click', {
-                        latlng: L.latLng(lat, lon)
-                    });
-
-                
                     const resultsPanel = document.getElementById('search-results'); 
                     if(resultsPanel) resultsPanel.classList.remove('d-none');
                     
@@ -687,7 +636,7 @@
         });
     }
     
-function limparTudo() {
+    function limparTudo() {
         document.getElementById('cep').value = '';
         document.getElementById('logradouro').value = '';
         document.getElementById('numero').value = '';
@@ -705,28 +654,15 @@ function limparTudo() {
 
          limparDadosEndereco();
     }
-
-function alternarVisualizacao() {
-        const menu = document.querySelector('.col-md-3');
-        const btn = document.getElementById('toggle-view-btn');
-        
-        if (!menu.classList.contains('hidden')) {
-            menu.classList.add('hidden');
-            btn.innerHTML = "📝";
-        } else {
-            menu.classList.remove('hidden');
-            btn.innerHTML = "🗺️"; 
-        }
-    }
     
-function alternarVisualizacao() {
+    function alternarVisualizacao() {
         const menu = document.querySelector('.col-md-3');
         const btn = document.getElementById('toggle-view-btn');
         
         if (!menu.classList.contains('hidden')) {
             menu.classList.add('hidden');
             btn.innerHTML = "📝"; 
-                        setTimeout(() => { map.invalidateSize(); }, 200); 
+            setTimeout(() => { map.invalidateSize(); }, 200); 
             
         } else {
             menu.classList.remove('hidden');
@@ -734,50 +670,30 @@ function alternarVisualizacao() {
         }
     }
 
-    document.getElementById('cep').addEventListener('input', function (e) {
-        let value = e.target.value.replace(/\D/g, '');
-        
-         if (value.length === 8) {
-            e.target.value = value.replace(/^(\d{5})(\d)/, '$1-$2'); 
-            buscarEndereco(); 
-        } else {
-             if (value.length > 5) {
-                value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('cep').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value.length === 8) {
+                e.target.value = value.replace(/^(\d{5})(\d)/, '$1-$2'); 
+                buscarEndereco(); 
+            } else {
+                if (value.length > 5) {
+                    value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+                }
+                e.target.value = value;
             }
-            e.target.value = value;
-        }
-    });
+        });
+
         document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            buscarEndereco();
-        }
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    buscarEndereco();
+                }
+            });
+        });
     });
-});
         
 </script>
-    
-<button id="toggle-view-btn" class="btn btn-primary" onclick="alternarVisualizacao()">🗺️</button>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
