@@ -448,6 +448,48 @@
             }
         }
 
+
+    if (logradouro === "") {
+            alert("⚠️ Digite o CEP ou o Nome da Rua.");
+            return;
+        }
+
+        let query = `${logradouro}, ${numero}, São Paulo, Brazil`;
+        if (cep.length === 8) query = `${logradouro}, ${numero}, ${cep}, Brazil`;
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    let lat = parseFloat(data[0].lat);
+                    let lon = parseFloat(data[0].lon);
+
+                    map.setView([lat, lon], 17);
+
+                    if (typeof marker !== 'undefined' && marker) {
+                        map.removeLayer(marker);
+                    }
+                    marker = L.marker([lat, lon]).addTo(map);
+
+                    map.fire('click', {
+                        latlng: L.latLng(lat, lon),
+                        containerPoint: map.latLngToContainerPoint([lat, lon]),
+                        originalEvent: {}
+                    });
+
+                    const resultsPanel = document.getElementById('search-results'); 
+                    if(resultsPanel) resultsPanel.classList.remove('d-none');
+                    
+                } else {
+                    alert("Endereço não localizado. Tente verificar o número.");
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert("Erro ao conectar com o mapa.");
+            });
+    }
+    
         if (logradouro === "") {
             alert("⚠️ Digite o CEP ou o Nome da Rua.");
             return;
@@ -718,6 +760,7 @@ function alternarVisualizacao() {
 <button id="toggle-view-btn" class="btn btn-primary" onclick="alternarVisualizacao()">🗺️</button>
 </body>
 </html>
+
 
 
 
