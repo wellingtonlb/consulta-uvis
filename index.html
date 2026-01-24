@@ -584,28 +584,14 @@
             }
         }    
 
-             candidatosUVIS.sort((a, b) => b.pontos - a.pontos);
+        candidatosUVIS.sort((a, b) => b.pontos - a.pontos);
         candidatosDA.sort((a, b) => b.pontos - a.pontos);
 
         document.getElementById('res-uvis').innerText = candidatosUVIS.length > 0 ? candidatosUVIS[0].valor : "Não identificado";
         document.getElementById('res-da').innerText = candidatosDA.length > 0 ? candidatosDA[0].valor : "Não identificado";
         document.getElementById('res-email').innerText = emailFinal;
     }
-        
-        let daVencedor = "Não identificado";
-        if (candidatosDA.length > 0) {
-            const melhorDistinto = candidatosDA.find(c => c.valor !== uvisVencedora && isNaN(c.valor));
-            if (melhorDistinto) {
-                daVencedor = melhorDistinto.valor;
-            } else {
-                daVencedor = candidatosDA[0].valor;
-            }
-        }
-
-        document.getElementById('res-uvis').innerText = uvisVencedora;
-        document.getElementById('res-da').innerText = daVencedor;
-        document.getElementById('res-email').innerText = emailFinal;
-    }
+        ]
     
     function exibirDetalhesRegiao(props) {
         const container = document.getElementById('detail-content');
@@ -707,6 +693,7 @@
 </script>
 </body>
 </html>
+
 
 
 
