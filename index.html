@@ -118,7 +118,7 @@
             }
             
             .col-md-3.hidden {
-                display: none;
+                display: none !important;
             }
         }
         
@@ -675,12 +675,27 @@ function alternarVisualizacao() {
         }
     }
     
-
+function alternarVisualizacao() {
+        const menu = document.querySelector('.col-md-3');
+        const btn = document.getElementById('toggle-view-btn');
+        
+        if (!menu.classList.contains('hidden')) {
+            menu.classList.add('hidden');
+            btn.innerHTML = "📝"; 
+                        setTimeout(() => { map.invalidateSize(); }, 200); 
+            
+        } else {
+            menu.classList.remove('hidden');
+            btn.innerHTML = "🗺️"; 
+        }
+    }
+    
 </script>
     
 <button id="toggle-view-btn" class="btn btn-primary" onclick="alternarVisualizacao()">🗺️</button>
 </body>
 </html>
+
 
 
 
