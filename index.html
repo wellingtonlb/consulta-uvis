@@ -712,19 +712,13 @@ function alternarVisualizacao() {
         }
         e.target.value = value;
     });
-
-     document.querySelectorAll('input').forEach(item => {
-        item.addEventListener('keypress', event => {
-            if (event.key === 'Enter') {
-                buscarEndereco(); 
-            }
-        })
-    });
+        
 </script>
     
 <button id="toggle-view-btn" class="btn btn-primary" onclick="alternarVisualizacao()">🗺️</button>
 </body>
 </html>
+
 
 
 
