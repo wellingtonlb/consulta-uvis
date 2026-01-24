@@ -421,64 +421,68 @@
     });
 
     function buscarEndereco() {
-        const rua = document.getElementById('logradouro').value;
-        const num = document.getElementById('numero').value;
-        const cepInput = document.getElementById('cep').value;
+       async function buscarEndereco() {
+        let cepInput = document.getElementById('cep');
+        let logradouroInput = document.getElementById('logradouro');
+        let numeroInput = document.getElementById('numero');
+        let cep = cepInput.value.replace(/\D/g, '');
+        let logradouro = logradouroInput.value.trim();
+        let numero = numeroInput.value.trim();
 
-        if (!rua) { alert("Preencha o logradouro."); return; }
-
-        document.getElementById('loading').classList.remove('d-none');
-        document.getElementById('search-results').classList.add('d-none');
-        document.getElementById('region-details').classList.add('d-none');
-        document.getElementById('ubs-result-card').classList.add('d-none');
-
-        const query = `${rua}, ${num}, São Paulo, Brasil`;
-        
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&limit=1&email=wellingtonlb22@outlook.com`)
-            .then(res => {
-                if (!res.ok) throw new Error("Erro HTTP: " + res.status);
-                return res.json();
-            })
-            .then(data => {
-                document.getElementById('loading').classList.add('d-none');
+        if (cep.length === 8 && logradouro === "") {
+            try {
+                logradouroInput.placeholder = "Buscando rua...";
                 
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await response.json();
+
+                if (data.erro) {
+                    alert("❌ CEP não encontrado! Verifique o número.");
+                    cepInput.value = "";  
+                    cepInput.focus();
+                    logradouroInput.placeholder = "Nome da rua";
+                    return;
+                }
+
+                 logradouroInput.value = data.logradouro;
+                
+ 
+                 logradouro = data.logradouro;
+
+            } catch (error) {
+                alert("Erro de conexão ao buscar CEP.");
+                return;
+            }
+        }
+
+         if (logradouro === "") {
+            alert("⚠️ Por favor, preencha o CEP correto ou o nome da Rua.");
+            if(cep.length > 0 && cep.length !== 8) {
+                 alert("O CEP deve ter 8 dígitos.");
+            }
+            return;
+        }
+
+         let query = `${logradouro}, ${numero}, São Paulo, Brazil`;
+        
+         if (cep.length === 8) {
+            query = `${logradouro}, ${numero}, ${cep}, Brazil`;
+        }
+
+         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
+            .then(response => response.json())
+            .then(data => {
                 if (data.length > 0) {
-                    const lat = parseFloat(data[0].lat);
-                    const lon = parseFloat(data[0].lon);
-
-                    document.getElementById('res-log').innerText = rua + (num ? `, ${num}` : '');
-                    
-                    let cepEncontrado = cepInput;
-                    if (!cepEncontrado && data[0].address && data[0].address.postcode) {
-                        cepEncontrado = data[0].address.postcode;
-                    }
-                    document.getElementById('res-cep').innerText = cepEncontrado || "Não informado";
-                    
-                    let bairroMapa = "";
-                    if (data[0].address) {
-                        bairroMapa = data[0].address.suburb || data[0].address.neighbourhood || data[0].address.residential || "";
-                    }
-                    const bairroFinal = bairroCache || bairroMapa || "Não identificado";
-                    document.getElementById('res-bairro').innerText = bairroFinal;
-
-                    let cidade = "São Paulo";
-                    if (data[0].address) {
-                        cidade = data[0].address.city || data[0].address.town || data[0].address.municipality || "São Paulo";
-                    }
-                    // Certifique-se de que o elemento 'res-cidade' existe no HTML antes de rodar isso
-                    if(document.getElementById('res-cidade')) {
-                        document.getElementById('res-cidade').innerText = cidade;
-                    }
-                    
-                    atualizarMapa(lat, lon, true);
+                    let lat = data[0].lat;
+                    let lon = data[0].lon;
+                    atualizarMapa(lat, lon); // Sua função que joga o pino no mapa
                 } else {
-                    alert("Endereço não encontrado pelo localizador.");
+                    alert("Endereço não localizado no mapa. Tente verificar o número ou escrever o nome da rua sem abreviações.");
                 }
             })
-            .catch((err) => {
-                document.getElementById('loading').classList.add('d-none');
-                console.error(err);
-                alert("Ocorreu um erro ao buscar o endereço.");
+            .catch(error => {
+                console.error('Erro:', error);
+                alert("Erro ao conectar com o serviço de mapa.");
             });
     }
 
@@ -698,12 +702,30 @@ function alternarVisualizacao() {
         }
     });
 });
-    
+
+     document.getElementById('cep').addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, ''); // Remove tudo que não é número
+        if (value.length > 8) value = value.slice(0, 8); // Limita a 8 números
+        
+        if (value.length > 5) {
+            value = value.replace(/^(\d{5})(\d)/, '$1-$2'); // Coloca o traço
+        }
+        e.target.value = value;
+    });
+
+     document.querySelectorAll('input').forEach(item => {
+        item.addEventListener('keypress', event => {
+            if (event.key === 'Enter') {
+                buscarEndereco(); 
+            }
+        })
+    });
 </script>
     
 <button id="toggle-view-btn" class="btn btn-primary" onclick="alternarVisualizacao()">🗺️</button>
 </body>
 </html>
+
 
 
 
