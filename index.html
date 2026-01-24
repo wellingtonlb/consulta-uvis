@@ -440,6 +440,7 @@
         
         marker.on('dragend', function(e) {
             verificarPoligono(e.target.getLatLng().lat, e.target.getLatLng().lng);
+            limparDadosEndereco();
         });
 
         verificarPoligono(lat, lon);
@@ -593,6 +594,7 @@
 
 </body>
 </html>
+
 
 
 
