@@ -116,7 +116,8 @@
                             <input type="text" class="form-control form-control-sm" id="numero" placeholder="Nº">
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-sm w-100 fw-bold" onclick="buscarEndereco()">🔍 CONSULTAR</button>
+                <button class="btn btn-primary btn-sm w-100 fw-bold" onclick="buscarEndereco()">🔍 CONSULTAR</button>
+                <button class="btn btn-outline-secondary btn-sm w-100 fw-bold mt-2" onclick="limparTudo()">🗑️ LIMPAR TUDO</button>
                 </div>
             </div>
 
@@ -605,10 +606,32 @@
             }, 2000);
         });
     }
+    
+function limparTudo() {
+        document.getElementById('cep').value = '';
+        document.getElementById('logradouro').value = '';
+        document.getElementById('numero').value = '';
+
+         if (marker) {
+            map.removeLayer(marker);
+            marker = null;
+        }
+
+        document.getElementById('search-results').classList.add('d-none');
+        document.getElementById('region-details').classList.add('d-none');
+        document.getElementById('ubs-result-card').classList.add('d-none');
+        
+         map.setView([-23.5505, -46.6333], 11);
+
+         limparDadosEndereco();
+    }
+
+
 </script>
 
 </body>
 </html>
+
 
 
 
