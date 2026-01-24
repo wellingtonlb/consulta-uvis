@@ -431,7 +431,7 @@
 
         if (cep.length === 8 && logradouro === "") {
             try {
-                logradouroInput.placeholder = "Carregando rua...";
+                logradouroInput.placeholder = "Carregando...";
                 const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
                 const data = await response.json();
 
@@ -441,17 +441,15 @@
                     logradouroInput.placeholder = "Nome da rua";
                     return;
                 }
-
                 logradouroInput.value = data.logradouro;
-                logradouro = data.logradouro;
+                logradouro = data.logradouro; 
             } catch (error) {
                 console.error(error);
             }
         }
 
-
         if (logradouro === "") {
-            alert("⚠️ Digite o CEP ou o Nome da Rua para consultar.");
+            alert("⚠️ Digite o CEP ou o Nome da Rua.");
             return;
         }
 
@@ -465,17 +463,18 @@
                     let lat = data[0].lat;
                     let lon = data[0].lon;
                     
-                    map.setView([lat, lon], 16);
+                    map.setView([lat, lon], 17);
+        
+                    map.fire('click', {
+                        latlng: L.latLng(lat, lon)
+                    });
 
-                    if (typeof marker !== 'undefined' && marker) {
-                        map.removeLayer(marker);
-                    }
-
-                    marker = L.marker([lat, lon]).addTo(map);
-                    
+                
+                    const resultsPanel = document.getElementById('search-results'); 
+                    if(resultsPanel) resultsPanel.classList.remove('d-none');
                     
                 } else {
-                    alert("Endereço não localizado. Verifique o número ou nome da rua.");
+                    alert("Endereço não localizado. Tente verificar o número.");
                 }
             })
             .catch(error => {
@@ -483,7 +482,7 @@
                 alert("Erro ao conectar com o mapa.");
             });
     }
-
+    
     function atualizarMapa(lat, lon, darZoom = false) {
         if (marker) map.removeLayer(marker);
         marker = L.marker([lat, lon], { draggable: true }).addTo(map);
@@ -719,6 +718,7 @@ function alternarVisualizacao() {
 <button id="toggle-view-btn" class="btn btn-primary" onclick="alternarVisualizacao()">🗺️</button>
 </body>
 </html>
+
 
 
 
