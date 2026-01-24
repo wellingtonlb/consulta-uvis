@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "localizador.uvis.twa",
+        "sha256_cert_fingerprints": ["42:A0:6C:07:4C:DE:3E:1D:BA:44:F5:51:B3:01:D5:27:1E:4B:10:7A:A8:99:8E:B1:A7:72:A2:31:94:67:6A:3D"]
+      }
+    }]
