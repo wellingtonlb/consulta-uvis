@@ -1,9 +1,9 @@
 # Localizador UVIS e UBS - Cidade de São Paulo
 <div class="text-center mb-4">
         <h3 class="fw-bold text-primary">Localizador UVIS e UBS</h3>
-        <p class="text-muted small mb-3">Consulta de Território</p>
+        <p class="text-muted small mb-3">Consulta de Território UVIS/UBS - São Paulo</p>
 
-> **Prefere usar sem abrir o site?** [**Baixe a Extensão na Chrome Web Store ↗**](https://chromewebstore.google.com/detail/localizador-uvis-e-ubs/ohhkpccnilhbbhgeidmajpghpjgpipcc)
+> [**Baixe a Extensão na Chrome Web Store ↗**](https://chromewebstore.google.com/detail/localizador-uvis-e-ubs/ohhkpccnilhbbhgeidmajpghpjgpipcc)
 
 Ferramenta web desenvolvida para facilitar a identificação da **Unidade de Vigilância em Saúde (UVIS)**, do **Distrito Administrativo (DA)**  e da **Unidade Básica de Saúde (UBS)** correspondentes a um determinado endereço ou CEP no município de São Paulo.
 
