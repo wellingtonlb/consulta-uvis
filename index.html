@@ -401,6 +401,34 @@
         });
 
 
+    async function preencherEnderecoPeloCEP(cep) {
+        const logradouroInput = document.getElementById('logradouro');
+        
+        try {
+            logradouroInput.placeholder = "Buscando rua...";
+            logradouroInput.value = ""; 
+
+            const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+            const data = await response.json();
+
+            if (!data.erro) {
+                logradouroInput.value = data.logradouro;
+                
+                document.getElementById('res-cep').innerText = cep.replace(/^(\d{5})(\d)/, '$1-$2');
+                document.getElementById('res-bairro').innerText = data.bairro;
+                document.getElementById('res-cidade').innerText = data.localidade;
+                
+                document.getElementById('numero').focus();
+            } else {
+                logradouroInput.placeholder = "CEP não encontrado";
+                alert("❌ CEP não encontrado!");
+            }
+        } catch (error) {
+            console.error("Erro no ViaCEP", error);
+            logradouroInput.placeholder = "Erro na busca";
+        }
+    }
+
     async function buscarEndereco() {
         let cepInput = document.getElementById('cep');
         let logradouroInput = document.getElementById('logradouro');
@@ -410,61 +438,31 @@
         let logradouro = logradouroInput.value.trim();
         let numero = numeroInput.value.trim();
 
-        let ruaFinal = logradouro;
-        let cidadeFinal = "São Paulo"; 
-        let bairroFinal = "-";
-
-        if (cep.length === 8) {
-            try {
-                if (logradouro === "") logradouroInput.placeholder = "Carregando...";
-                
-                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                const data = await response.json();
-
-                if (!data.erro) {
-                    if (logradouro === "") {
-                        logradouroInput.value = data.logradouro;
-                        ruaFinal = data.logradouro;
-                    }
-                    cidadeFinal = data.localidade;
-                    bairroFinal = data.bairro;
-                    
-                    document.getElementById('res-cep').innerText = cep.replace(/^(\d{5})(\d)/, '$1-$2');
-                    document.getElementById('res-bairro').innerText = bairroFinal;
-                    document.getElementById('res-cidade').innerText = cidadeFinal;
-                } else {
-                    if (logradouro === "") {
-                        alert("❌ CEP não encontrado!");
-                        return;
-                    }
-                }
-            } catch (error) {
-                console.error("Erro no ViaCEP", error);
-            }
+        if (cep.length === 8 && logradouro === "") {
+            await preencherEnderecoPeloCEP(cep);
+            logradouro = logradouroInput.value; 
         }
 
-        if (ruaFinal === "") {
+        if (logradouro === "") {
             alert("⚠️ Digite o CEP ou o Nome da Rua.");
             return;
         }
 
-        document.getElementById('res-log').innerText = `${ruaFinal}, ${numero}`;
-        document.getElementById('res-cidade').innerText = cidadeFinal; 
+        let cidadeFinal = document.getElementById('res-cidade').innerText;
+        if(cidadeFinal === "-") cidadeFinal = "São Paulo";
 
-        let query = `${ruaFinal}, ${numero}, ${cidadeFinal}, Brazil`;
-        if (cidadeFinal !== "São Paulo") {
-            query = `${ruaFinal}, ${numero}, ${cidadeFinal}, Brazil`;
-        }
+        document.getElementById('res-log').innerText = `${logradouro}, ${numero}`;
 
+        let query = `${logradouro}, ${numero}, ${cidadeFinal}, Brazil`;
+        
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
             .then(response => response.json())
             .then(data => {
                 if (data.length > 0) {
                     let lat = parseFloat(data[0].lat);
                     let lon = parseFloat(data[0].lon);
-
+                    
                     atualizarMapa(lat, lon, true);
-
                     document.getElementById('search-results').classList.remove('d-none');
                 } else {
                     alert("Endereço não localizado no mapa. Verifique o número.");
@@ -497,7 +495,6 @@
         if (!geoJsonData) return;
 
         const ponto = turf.point([lon, lat]);
-        
         let featureUVIS = null;
         
         turf.featureEach(geoJsonData, function (feat) {
@@ -527,11 +524,11 @@
         const txtUbs = document.getElementById('res-ubs');
         
         if (featureUVIS) {
-             atualizarPainelResumo(featureUVIS.properties);
+            atualizarPainelResumo(featureUVIS.properties);
             exibirDetalhesRegiao(featureUVIS.properties);
             document.getElementById('search-results').classList.remove('d-none');
 
-             if (geoJsonUBS) {
+            if (geoJsonUBS) {
                 divUbs.classList.remove('d-none');
                 if (achouUBS) {
                     txtUbs.innerText = nomeUBS;
@@ -542,7 +539,7 @@
                 }
             }
         } else {
-             document.getElementById('res-uvis').innerText = "Fora da área mapeada (Outro Município?)";
+            document.getElementById('res-uvis').innerText = "Fora da área mapeada";
             document.getElementById('res-da').innerText = "-";
             document.getElementById('res-email').innerText = "-";
             
@@ -634,8 +631,7 @@
         document.getElementById('cep').value = '';
         document.getElementById('logradouro').value = '';
         document.getElementById('numero').value = '';
-        
-         limparDadosEndereco();
+        limparDadosEndereco();
 
          if (marker) {
             map.removeLayer(marker);
@@ -667,10 +663,19 @@
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('cep').addEventListener('input', function (e) {
             let value = e.target.value.replace(/\D/g, '');
+            
+            if (value.length < 8) {
+                 document.getElementById('logradouro').value = "";
+            }
+
             if (value.length > 5) {
                 value = value.replace(/^(\d{5})(\d)/, '$1-$2');
             }
             e.target.value = value;
+            
+            if (e.target.value.replace(/\D/g, '').length === 8) {
+                preencherEnderecoPeloCEP(e.target.value.replace(/\D/g, ''));
+            }
         });
 
         document.querySelectorAll('input').forEach(input => {
