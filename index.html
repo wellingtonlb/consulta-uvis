@@ -24,516 +24,320 @@
             justify-content: space-between; 
             background: #fff; 
             border: 1px solid #e9ecef; 
-            padding: 6px 10px; 
+            padding: 10px; 
             border-radius: 6px; 
-            margin-bottom: 6px;
+            margin-bottom: 8px; 
         }
         
-        .res-label { font-size: 0.7rem; color: #6c757d; text-transform: uppercase; font-weight: 700; display: block; }
-        .res-value { font-size: 0.95rem; color: #212529; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+        /* Cores das bordas laterais */
+        .border-uvis { border-left: 4px solid #0d6efd; } /* Azul */
+        .border-da { border-left: 4px solid #6610f2; }   /* Roxo */
+        .border-ubs { border-left: 4px solid #198754; }  /* Verde */
+        .border-std { border-left: 4px solid #adb5bd; }  /* Cinza */
+
+        .res-content { display: flex; flex-direction: column; width: 100%; }
+        .res-label { font-size: 0.75rem; text-transform: uppercase; color: #6c757d; font-weight: 700; margin-bottom: 2px; }
+        .res-value { font-size: 1rem; color: #212529; font-weight: 600; word-break: break-word; }
         
-        .res-value-multiline {
-            font-size: 0.85rem;
-            color: #212529;
-            font-weight: 600;
-            white-space: pre-wrap;
-            word-break: break-word;
-            line-height: 1.4;
-        }
-
-        .detail-card {
-            background-color: #fff;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border-left: 5px solid #6610f2;
-        }
-
-        .detail-title {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #6610f2;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
-        }
-
-        .detail-content {
-            font-size: 0.8rem;
-            color: #333;
-            line-height: 1.6;
-        }
-
         .btn-copy { 
-            background-color: #f8f9fa; 
-            border: 1px solid #dee2e6; 
-            color: #495057; 
-            width: 30px; 
-            height: 30px; 
-            border-radius: 4px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            transition: all 0.2s ease;
-            margin-left: 8px;
-            flex-shrink: 0;
+            background: transparent; border: 1px solid #dee2e6; color: #6c757d; 
+            border-radius: 4px; padding: 4px 8px; margin-left: 10px; transition: all 0.2s; 
         }
-        .btn-copy:hover { background-color: #e2e6ea; color: #0d6efd; border-color: #cbd5e0; }
+        .btn-copy:hover { background-color: #e9ecef; color: #0d6efd; }
         .btn-copy.copied { background-color: #198754; color: white; border-color: #198754; }
 
-        .border-uvis { border-left: 3px solid #0d6efd; }
-        .border-da { border-left: 3px solid #198754; }
+        @media (max-width: 768px) {
+            #map { height: 300px; margin-top: 20px; }
+            .container-fluid { padding: 10px; }
+        }
     </style>
 </head>
-<body class="py-3">
+<body class="d-flex flex-column min-vh-100">
 
-<div class="container-fluid px-3">
-    
-    <div class="row g-3">
-        <div class="col-md-3 d-flex flex-column" style="max-height: 95vh; overflow-y: auto;">
-            
-            <div class="text-center mb-3">
-                <h5 class="fw-bold text-primary mb-0">Localizador UVIS, DA e UBS</h5>
-            </div>
-
-            <div class="card main-card mb-3">
-                <div class="card-body p-3">
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold text-secondary mb-1">CEP</label>
-                        <input type="text" class="form-control form-control-sm" id="cep" placeholder="00000-000" maxlength="9">
+<div class="container-fluid flex-grow-1 my-3">
+    <div class="row h-100">
+        <div class="col-md-4 col-lg-3 d-flex flex-column">
+            <div class="card main-card mb-3 p-3">
+                <h5 class="text-primary text-center mb-3 fw-bold">📍 Localizador UVIS SP</h5>
+                
+                <div class="mb-2">
+                    <label class="form-label small fw-bold text-muted">CEP</label>
+                    <input type="text" id="cep" class="form-control" placeholder="00000-000" maxlength="9">
+                </div>
+                
+                <div class="row g-2 mb-3">
+                    <div class="col-8">
+                        <label class="form-label small fw-bold text-muted">Logradouro</label>
+                        <input type="text" id="logradouro" class="form-control" placeholder="Rua...">
                     </div>
-                    <div class="row g-2 mb-2">
-                        <div class="col-8">
-                            <label class="form-label small fw-bold text-secondary mb-1">Logradouro</label>
-                            <input type="text" class="form-control form-control-sm" id="logradouro" placeholder="Nome da rua">
-                        </div>
-                        <div class="col-4">
-                            <label class="form-label small fw-bold text-secondary mb-1">Número</label>
-                            <input type="text" class="form-control form-control-sm" id="numero" placeholder="Nº">
-                        </div>
+                    <div class="col-4">
+                        <label class="form-label small fw-bold text-muted">Número</label>
+                        <input type="text" id="numero" class="form-control" placeholder="Nº">
                     </div>
-                    <button class="btn btn-primary btn-sm w-100 fw-bold" onclick="buscarEndereco()">🔍 CONSULTAR</button>
+                </div>
+                
+                <button id="btn-consultar" class="btn btn-primary w-100 fw-bold py-2">🔍 CONSULTAR</button>
+                <div id="loading" class="text-center mt-3 text-primary" style="display:none;">
+                    <div class="spinner-border spinner-border-sm" role="status"></div> Processando...
                 </div>
             </div>
 
-            <div id="search-results" class="d-none animate__animated animate__fadeIn">
-                <h6 class="fw-bold text-secondary small mb-2">ENDEREÇO LOCALIZADO</h6>
+            <div id="results-area" style="display:none;">
                 
                 <div class="result-row border-uvis">
-                    <div style="flex: 1; min-width: 0;">
-                        <span class="res-label">UVIS (Referência)</span>
+                    <div class="res-content">
+                        <span class="res-label text-primary">UVIS (Referência)</span>
                         <span id="res-uvis" class="res-value">-</span>
                     </div>
-                    <button class="btn-copy" onclick="copiar(this, 'res-uvis')">📋</button>
+                    <button class="btn-copy" onclick="copiar(this, 'res-uvis')" title="Copiar">❐</button>
                 </div>
 
                 <div class="result-row border-da">
-                    <div style="flex: 1; min-width: 0;">
-                        <span class="res-label">Distrito Administrativo</span>
+                    <div class="res-content">
+                        <span class="res-label text-purple" style="color: #6610f2;">Distrito (DA)</span>
                         <span id="res-da" class="res-value">-</span>
                     </div>
-                    <button class="btn-copy" onclick="copiar(this, 'res-da')">📋</button>
+                    <button class="btn-copy" onclick="copiar(this, 'res-da')" title="Copiar">❐</button>
                 </div>
 
-                <div id="ubs-result-card" class="d-none mb-2 p-2 bg-white border border-success rounded shadow-sm" style="border-left-width: 5px !important;">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="res-label text-success">🏥 UBS de Referência</span>
-                            <div id="res-ubs" class="fw-bold text-success" style="font-size: 0.9rem;">-</div>
-                        </div>
-                        <button class="btn-copy" onclick="copiar(this, 'res-ubs')">📋</button>
+                <div class="result-row border-ubs">
+                    <div class="res-content">
+                        <span class="res-label text-success">🏥 UBS de Referência</span>
+                        <span id="res-ubs" class="res-value">-</span>
                     </div>
+                    <button class="btn-copy" onclick="copiar(this, 'res-ubs')" title="Copiar">❐</button>
                 </div>
 
-                <div class="result-row">
-                    <div style="flex: 1; min-width: 0;">
-                        <span class="res-label">Endereço Pesquisado</span>
+                <div class="result-row border-std">
+                    <div class="res-content">
+                        <span class="res-label">Logradouro</span>
                         <span id="res-log" class="res-value">-</span>
                     </div>
-                    <button class="btn-copy" onclick="copiar(this, 'res-log')">📋</button>
+                    <button class="btn-copy" onclick="copiar(this, 'res-log')" title="Copiar">❐</button>
                 </div>
 
-                <div class="result-row">
-                    <div style="flex: 1; min-width: 0;">
+                <div class="result-row border-std">
+                    <div class="res-content">
                         <span class="res-label">Bairro</span>
                         <span id="res-bairro" class="res-value">-</span>
                     </div>
-                    <button class="btn-copy" onclick="copiar(this, 'res-bairro')">📋</button>
+                    <button class="btn-copy" onclick="copiar(this, 'res-bairro')" title="Copiar">❐</button>
                 </div>
 
-                <div class="result-row">
-                    <div style="flex: 1; min-width: 0;">
+                <div class="result-row border-std">
+                    <div class="res-content">
                         <span class="res-label">CEP</span>
                         <span id="res-cep" class="res-value">-</span>
                     </div>
-                    <button class="btn-copy" onclick="copiar(this, 'res-cep')">📋</button>
+                    <button class="btn-copy" onclick="copiar(this, 'res-cep')" title="Copiar">❐</button>
                 </div>
 
-                <div class="result-row">
-                    <div style="flex: 1; min-width: 0;">
-                        <span class="res-label">Contatos / Email</span>
-                        <span id="res-email" class="res-value-multiline">-</span>
+                <div class="result-row border-std">
+                    <div class="res-content">
+                        <span class="res-label">Cidade</span>
+                        <span id="res-cidade" class="res-value">-</span>
                     </div>
-                    <button class="btn-copy" onclick="copiar(this, 'res-email')">📋</button>
+                    <button class="btn-copy" onclick="copiar(this, 'res-cidade')" title="Copiar">❐</button>
                 </div>
+
             </div>
 
-            <div id="region-details" class="detail-card d-none animate__animated animate__fadeInUp">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="detail-title mb-0">FICHA TÉCNICA DA UNIDADE</span>
-                    <button class="btn btn-sm btn-outline-secondary py-0" style="font-size: 0.7rem;" onclick="copiarTextoDetalhes(this)">Copiar Tudo</button>
-                </div>
-                <div id="detail-content" class="detail-content">-</div>
+            <div id="region-details" class="card mt-3 p-3 d-none border-0 shadow-sm bg-white">
+                <h6 class="fw-bold text-muted border-bottom pb-2">Detalhes da Área</h6>
+                <div id="detail-content" class="small text-secondary"></div>
+                <button class="btn btn-sm btn-outline-secondary mt-2 w-100" onclick="copiarTextoDetalhes(this)">Copiar Detalhes</button>
             </div>
-
-            <div id="loading" class="text-center d-none py-3">
-                <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
-                <span class="ms-2 small text-muted">Processando...</span>
-            </div>
-
-            <footer class="mt-auto pt-3 text-center">
-                <a href="privacidade.html" class="small text-muted text-decoration-none">Política de Privacidade</a>
-            </footer>
         </div>
-        
-        <div class="col-md-9">
+
+        <div class="col-md-8 col-lg-9">
             <div id="map"></div>
-            <p class="text-muted small mt-1 text-end mb-0">
-                <span class="badge bg-light text-dark border">Dica</span> Arraste o pino para ajustar. Clique em qualquer área colorida para ver a ficha técnica.
-            </p>
         </div>
     </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 
 <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./service-worker.js')
-        .then(reg => console.log('App pronto para instalar: ', reg.scope))
-        .catch(err => console.log('Falha ao registrar PWA: ', err));
-    });
-  }
-</script>
-
-<script>
-    const map = L.map('map').setView([-23.5505, -46.6333], 11);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap &copy; CARTO'
-    }).addTo(map);
-
-    let geoJsonData = null;   
-    let geoJsonUBS = null;    
-    let marker = null;
-    let geoJsonLayer = null;
-    let bairroCache = ""; 
-
-     const distinctColors = [
-        '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', 
-        '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', 
-        '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', 
-        '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'
-    ];
-
-    function getColor(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        return distinctColors[Math.abs(hash) % distinctColors.length];
-    }
-
-    function styleFeature(feature) {
-        let nomeParaCor = "default";
-         for (const [key, value] of Object.entries(feature.properties)) {
-            if (key.toLowerCase().includes('uvis')) {
-                nomeParaCor = value;
-                break;
-            }
-        }
-        return {
-            fillColor: getColor(String(nomeParaCor)),
-            weight: 1,
-            opacity: 1,
-            color: '#888',
-            fillOpacity: 0.1 
-        };
-    }
-
-     function highlightFeature(e) {
-        const layer = e.target;
-        layer.setStyle({ weight: 3, color: '#666', fillOpacity: 0.3 });
-        layer.bringToFront();
-        if (marker) marker.setZIndexOffset(1000);
-    }
-
-    function resetHighlight(e) {
-        geoJsonLayer.resetStyle(e.target);
-    }
-
-    function onFeatureClick(e) {
-        const lat = e.latlng.lat;
-        const lng = e.latlng.lng;
-         atualizarMapa(lat, lng, false);
-         limparDadosEndereco();
-    }
-
-    function limparDadosEndereco() {
-        document.getElementById('res-log').innerText = "Selecionado no Mapa";
-        document.getElementById('res-cep').innerText = "-";
-        document.getElementById('res-bairro').innerText = "-";
-    }
-
-    function onEachFeature(feature, layer) {
-        let nomeDisplay = "";
-        for (const [key, value] of Object.entries(feature.properties)) {
-            if (key.toLowerCase().includes('uvis')) {
-                nomeDisplay = value;
-                break;
-            }
-        }
-        layer.bindTooltip(nomeDisplay, {
-            permanent: false, 
-            direction: "center",
-            className: "bg-transparent border-0 text-dark fw-bold"
-        });
-        layer.on({
-            mouseover: highlightFeature,
-            mouseout: resetHighlight,
-            click: onFeatureClick
-        });
-    }
-
      
-     fetch('./dados.json')
-        .then(r => r.json())
-        .then(data => {
-            geoJsonData = data;
-            geoJsonLayer = L.geoJson(data, {
-                style: styleFeature,
-                onEachFeature: onEachFeature
-            }).addTo(map);
-            
-            if(geoJsonLayer.getBounds().isValid()){
-                map.fitBounds(geoJsonLayer.getBounds());
-            }
-            console.log("✅ Sucesso: Base UVIS carregada.");
-        })
-        .catch(err => {
-            console.error(err);
-            alert("❌ ERRO: Não foi possível carregar 'dados.json'.");
-        });
+    let map, marker, uvisLayer, ubsLayer;
+    let geoJsonUVIS = null;
+    let geoJsonUBS = null;
+    let bairroCache = "";
 
-     fetch('./Territorios_UBS.geojson')
-        .then(r => {
-            if(!r.ok) throw new Error("Arquivo não encontrado");
-            return r.json();
-        })
-        .then(data => {
-            geoJsonUBS = data;
-            console.log("✅ Sucesso: Base UBS carregada (Memória).");
-        })
-        .catch(err => {
-            console.warn("⚠️ Aviso: Falha ao carregar 'Territorios_UBS.geojson'. A funcionalidade de UBS ficará desativada.");
-        });
+     function initMap() {
+        map = L.map('map').setView([-23.5505, -46.6333], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+    }
 
+     Promise.all([
+        fetch('./Territórios_UVIS.geojson').then(r => r.json()),
+        fetch('./Territorios_UBS.geojson').then(r => r.json())
+    ]).then(([dataUVIS, dataUBS]) => {
+        geoJsonUVIS = dataUVIS;
+        geoJsonUBS = dataUBS;
+        console.log("Bases Carregadas (Site)");
+    }).catch(err => console.error("Erro bases:", err));
 
      document.getElementById('cep').addEventListener('blur', function() {
         let cep = this.value.replace(/\D/g, '');
         if (cep.length === 8) {
             fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                .then(res => res.json())
+                .then(r => r.json())
                 .then(data => {
                     if (!data.erro) {
                         document.getElementById('logradouro').value = data.logradouro;
                         bairroCache = data.bairro;
+                        document.getElementById('res-cidade').innerText = data.localidade || "São Paulo";  
                     }
                 });
         }
     });
 
-    function buscarEndereco() {
+    document.getElementById('btn-consultar').addEventListener('click', function() {
         const rua = document.getElementById('logradouro').value;
         const num = document.getElementById('numero').value;
-        const cepInput = document.getElementById('cep').value;
+        const cepVal = document.getElementById('cep').value;
 
-        if (!rua) { alert("Preencha o logradouro."); return; }
+        if (!rua) return alert("Digite o endereço!");
 
-        document.getElementById('loading').classList.remove('d-none');
-        document.getElementById('search-results').classList.add('d-none');
+        const btn = this;
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results-area');
+
+        btn.style.display = 'none';
+        loading.style.display = 'block';
+        results.style.display = 'none';
         document.getElementById('region-details').classList.add('d-none');
-        document.getElementById('ubs-result-card').classList.add('d-none');
 
         const query = `${rua}, ${num}, São Paulo, Brasil`;
-        
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&limit=1&email=wellingtonlb22@outlook.com`)
-            .then(res => {
-                if (!res.ok) throw new Error("Erro HTTP: " + res.status);
-                return res.json();
-            })
-            .then(data => {
-                document.getElementById('loading').classList.add('d-none');
-                
-                if (data.length > 0) {
-                    const lat = parseFloat(data[0].lat);
-                    const lon = parseFloat(data[0].lon);
+        const cacheKey = `geo_${query.toLowerCase().replace(/\s/g, '_')}`;
+        const cached = localStorage.getItem(cacheKey);
 
-                    document.getElementById('res-log').innerText = rua + (num ? `, ${num}` : '');
-                    
-                    let cepEncontrado = cepInput;
-                    if (!cepEncontrado && data[0].address && data[0].address.postcode) {
-                        cepEncontrado = data[0].address.postcode;
-                    }
-                    document.getElementById('res-cep').innerText = cepEncontrado || "Não informado";
-                    
-                    let bairroMapa = "";
-                    if (data[0].address) {
-                        bairroMapa = data[0].address.suburb || data[0].address.neighbourhood || data[0].address.residential || "";
-                    }
-                    const bairroFinal = bairroCache || bairroMapa || "Não identificado";
-                    document.getElementById('res-bairro').innerText = bairroFinal;
-
-                    atualizarMapa(lat, lon, true);
-                } else {
-                    alert("Endereço não encontrado pelo localizador.");
-                }
-            })
-            .catch((err) => {
-                document.getElementById('loading').classList.add('d-none');
-                console.error(err);
-                alert("Ocorreu um erro ao buscar o endereço.");
-            });
-    }
-
-    function atualizarMapa(lat, lon, darZoom = false) {
-        if (marker) map.removeLayer(marker);
-        marker = L.marker([lat, lon], { draggable: true }).addTo(map);
-        marker.setZIndexOffset(1000);
-        
-        if (darZoom) {
-            map.setView([lat, lon], 16);
+        if (cached) {
+            processarDados(JSON.parse(cached));
+        } else {
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(query)}&email=wellingtonlb22@outlook.com`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.length) localStorage.setItem(cacheKey, JSON.stringify(data));
+                    processarDados(data);
+                })
+                .catch(() => {
+                    alert("Erro conexão");
+                    loading.style.display = 'none';
+                    btn.style.display = 'block';
+                });
         }
-        
-        marker.on('dragend', function(e) {
-            verificarPoligono(e.target.getLatLng().lat, e.target.getLatLng().lng);
-        });
 
-        verificarPoligono(lat, lon);
-    }
+        function processarDados(data) {
+            loading.style.display = 'none';
+            btn.style.display = 'block';
 
-    function verificarPoligono(lat, lon) {
-        if (!geoJsonData) return;
+            if (!data || !data.length) return alert("Endereço não achado!");
 
-        const ponto = turf.point([lon, lat]);
-        
-         let featureUVIS = null;
-        turf.featureEach(geoJsonData, function (feat) {
-             if (feat.geometry.type !== 'Polygon' && feat.geometry.type !== 'MultiPolygon') return;
+            const local = data[0];
+            const lat = parseFloat(local.lat);
+            const lon = parseFloat(local.lon);
+
+             document.getElementById('res-log').innerText = `${rua}, ${num}`;
             
-            if (turf.booleanPointInPolygon(ponto, feat)) {
-                featureUVIS = feat;
+             let cepFinal = cepVal;
+            if(!cepFinal && local.address && local.address.postcode) cepFinal = local.address.postcode;
+            document.getElementById('res-cep').innerText = cepFinal || "-";
+
+             let bairroMap = local.address ? (local.address.suburb || local.address.neighbourhood || "") : "";
+            document.getElementById('res-bairro').innerText = bairroCache || bairroMap || "Não identificado";
+
+             let cidade = "São Paulo";
+            if (local.address) {
+                cidade = local.address.city || local.address.municipality || local.address.town || local.address.village || "São Paulo";
             }
-        });
+            document.getElementById('res-cidade').innerText = cidade;
 
-         let nomeUBS = "Não identificada";
-        let achouUBS = false;
-        
-        if (geoJsonUBS) {
-            turf.featureEach(geoJsonUBS, function (feat) {
-                 if (achouUBS) return;  
+            results.style.display = 'block';
 
-                  if (feat.geometry.type !== 'Polygon' && feat.geometry.type !== 'MultiPolygon') return;
+             if (marker) map.removeLayer(marker);
+            if (uvisLayer) map.removeLayer(uvisLayer);
+            if (ubsLayer) map.removeLayer(ubsLayer);
 
-                 if (turf.booleanPointInPolygon(ponto, feat)) {
-                     const p = feat.properties;
-                     nomeUBS = p.Name || p.name || p.NOME || p.NO_FANTASIA || p.description || "Sem Nome";
-                     nomeUBS = nomeUBS.replace(/<[^>]*>?/gm, ''); 
-                     achouUBS = true;
+            map.setView([lat, lon], 15);
+            marker = L.marker([lat, lon]).addTo(map).bindPopup("Local Consultado").openPopup();
+
+             if (window.turf && geoJsonUVIS && geoJsonUBS) {
+                const pt = turf.point([lon, lat]);
+                
+                 let uvisFound = null;
+                let daFound = "Fora de SP";
+                
+                 let candidatosDA = [];
+
+                turf.featureEach(geoJsonUVIS, (feat) => {
+                    if (turf.booleanPointInPolygon(pt, feat)) {
+                        uvisFound = feat;
+                        const props = feat.properties;
+
+                         for (const [k, v] of Object.entries(props)) {
+                            const key = k.toLowerCase();
+                            const val = String(v).trim();
+                            
+                            if (key.includes('uvis') && (key.includes('nome') || key.includes('nm'))) {
+                                document.getElementById('res-uvis').innerText = val;
+                            }
+                            
+                             if (key.includes('da') || key.includes('distrito')) {
+                                let pontos = 0;
+                                if (key.includes('nome') || key.includes('nm')) pontos += 100;
+                                if (key.includes('cod') || key.includes('id')) pontos -= 100;
+                                if (!isNaN(val.replace(',','.'))) pontos -= 50; else pontos += 50;
+                                candidatosDA.push({ valor: val, pontos: pontos });
+                            }
+                        }
+                    }
+                });
+
+                 candidatosDA.sort((a,b) => b.pontos - a.pontos);
+                if(candidatosDA.length > 0) {
+                    document.getElementById('res-da').innerText = candidatosDA[0].valor;
+                } else {
+                    document.getElementById('res-da').innerText = "Não encontrado";
                 }
-            });
-        }
 
-         const divUbs = document.getElementById('ubs-result-card');
-        const txtUbs = document.getElementById('res-ubs');
-        
-        if (geoJsonUBS && featureUVIS) {
-            divUbs.classList.remove('d-none');
-            if (achouUBS) {
-                txtUbs.innerText = nomeUBS;
-                txtUbs.classList.remove('text-muted');
-                txtUbs.classList.add('text-success');
-            } else {
-                txtUbs.innerText = "Fora da área de cobertura das UBS mapeadas";
-                txtUbs.classList.add('text-muted');
-                txtUbs.classList.remove('text-success');
-            }
-        } else {
-            divUbs.classList.add('d-none');
-        }
+                if (!uvisFound) document.getElementById('res-uvis').innerText = "Fora da área";
 
-          if (featureUVIS) {
-            atualizarPainelResumo(featureUVIS.properties);
-            exibirDetalhesRegiao(featureUVIS.properties);
-            document.getElementById('search-results').classList.remove('d-none');
-        } else {
-             document.getElementById('res-uvis').innerText = "Fora da área mapeada";
-            document.getElementById('res-da').innerText = "-";
-            document.getElementById('res-email').innerText = "-";
-            document.getElementById('search-results').classList.remove('d-none');
-            document.getElementById('region-details').classList.add('d-none');
-            divUbs.classList.add('d-none');
-        }
-    }
+                 let ubsName = "Não encontrada";
+                let ubsFeat = null;
+                
+                turf.featureEach(geoJsonUBS, (feat) => {
+                    if (ubsFeat) return;
+                    if (feat.geometry.type !== 'Polygon' && feat.geometry.type !== 'MultiPolygon') return;
+                    
+                    if (turf.booleanPointInPolygon(pt, feat)) {
+                        ubsFeat = feat;
+                        const p = feat.properties;
+                        ubsName = p.Name || p.name || p.NOME || p.NO_FANTASIA || "Sem Nome";
+                        ubsName = ubsName.replace(/<[^>]*>?/gm, '');
+                    }
+                });
 
-    function atualizarPainelResumo(props) {
-        let candidatosUVIS = [];
-        let candidatosDA = [];
-        let emailFinal = "-";
-        let foundSpecificEmail = false;
+                document.getElementById('res-ubs').innerText = ubsName;
 
-        for (const [key, value] of Object.entries(props)) {
-            const k = key.toLowerCase();
-            const v = String(value).trim();
-
-            if (k.includes('uvis')) {
-                let pontos = 0;
-                if (k.includes('nome') || k.includes('nm') || k.includes('desc')) pontos += 20; 
-                if (isNaN(v)) pontos += 10; 
-                candidatosUVIS.push({ valor: v, pontos: pontos });
-            }
-
-            if (k.includes('da') || k.includes('distrito')) {
-                let pontos = 0;
-                if (k.includes('nome') || k.includes('nm')) pontos += 50;  
-                if (k.includes('cod') || k.includes('id')) pontos -= 50;  
-
-                if (isNaN(v)) pontos += 30;  
-                else pontos -= 20;  
-                candidatosDA.push({ valor: v, pontos: pontos });
-            }
-
-            if (k === 'email') {
-                emailFinal = v;
-                foundSpecificEmail = true;
-            } else if (k.includes('email') && !foundSpecificEmail) {
-                emailFinal = v;
+                 if (uvisFound) {
+                    uvisLayer = L.geoJSON(uvisFound, { style: { color: '#0d6efd', fillOpacity: 0.1 } }).addTo(map);
+                    map.fitBounds(uvisLayer.getBounds());
+                    exibirDetalhes(uvisFound.properties);
+                }
+                
+                if (ubsFeat) {
+                    ubsLayer = L.geoJSON(ubsFeat, { style: { color: '#198754', fillOpacity: 0.2, dashArray: '5, 5' } }).addTo(map);
+                }
             }
         }
+    });
 
-        candidatosUVIS.sort((a, b) => b.pontos - a.pontos);
-        candidatosDA.sort((a, b) => b.pontos - a.pontos);
-
-        document.getElementById('res-uvis').innerText = candidatosUVIS.length > 0 ? candidatosUVIS[0].valor : "Não identificado";
-        document.getElementById('res-da').innerText = candidatosDA.length > 0 ? candidatosDA[0].valor : "Não identificado";
-        document.getElementById('res-email').innerText = emailFinal;
-    }
-
-    function exibirDetalhesRegiao(props) {
+    function exibirDetalhes(props) {
         const container = document.getElementById('detail-content');
         let htmlContent = "";
         const ignorar = ['name', 'description', 'geometry', 'type', 'styleUrl', 'styleHash', 'styleMap', 'stroke', 'stroke-width', 'stroke-opacity', 'fill', 'fill-opacity', 'icon'];
@@ -567,14 +371,12 @@
             btn.innerText = "Copiado!";
             setTimeout(() => {
                 btn.innerText = originalText;
-            }, 2000);
+            }, 1500);
         });
     }
+
+    initMap();
 </script>
 
 </body>
 </html>
-
-
-
-
