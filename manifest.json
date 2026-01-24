@@ -2,7 +2,7 @@
   "id": "./index.html",
   "name": "Localizador UVIS SP",
   "short_name": "Busca UVIS/UBS",
-  "description": "Localize rapidamente a UVIS, UBS de referência e Distrito Administrativo pelo CEP ou endereço em São Paulo.",
+  "description": "Localize rapidamente a Unidade de Vigilância em Saúde (UVIS), UBS de referência e Distrito Administrativo pelo CEP ou endereço em São Paulo.",
   "start_url": "./index.html",
   "scope": "./",
   "lang": "pt-BR",
@@ -56,6 +56,7 @@
     }
   ]
 }
+
 
 
 
