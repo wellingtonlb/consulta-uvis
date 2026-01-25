@@ -374,43 +374,14 @@
         })
         .catch(err => console.error("Erro dados.json", err));
 
-   fetch('./Territorios_UBS.geojson')
-
-      .then(data => {
-
-            geoJsonUBS = data;
-
-            L.geoJson(data, {
-
-                style: { 
-
-                    color: '#ff0000',
-
-                    weight: 2, 
-
-                    fillOpacity: 0,   
-
-                    dashArray: '5, 5' 
-
-                },
-
-                onEachFeature: function(feature, layer) {
-
-                    let nome = feature.properties.Name || feature.properties.NOME || "Sem Nome";
-
-                    layer.bindTooltip(nome, { sticky: true });
-
-                }
-
-            }).addTo(map);
-
+    fetch('./Territorios_UBS.geojson')
+        .then(r => {
+            if(!r.ok) throw new Error("404");
+            return r.json();
         })
-
-        .catch(err => {
-
-            console.warn("⚠️ Aviso: Falha ao carregar 'Territorios_UBS.geojson'.");
-
-        });
+        .then(data => { geoJsonUBS = data; })
+        .catch(err => console.warn("UBS não carregado."));
+ 
 
      function limparDadosVisuais() {
         document.getElementById('res-log').innerText = "-";
@@ -758,6 +729,7 @@
 </script>
 </body>
 </html>
+
 
 
 
