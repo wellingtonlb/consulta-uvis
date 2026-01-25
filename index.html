@@ -415,7 +415,7 @@
      async function preencherEnderecoPeloCEP(cep) {
         const logradouroInput = document.getElementById('logradouro');
         try {
-            logradouroInput.placeholder = "Carregando...";
+            logradouroInput.placeholder = "Nome da Rua";
             const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
             const data = await response.json();
 
@@ -729,6 +729,7 @@
 </script>
 </body>
 </html>
+
 
 
 
