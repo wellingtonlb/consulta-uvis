@@ -434,7 +434,7 @@
         }
     }
 
-     async function buscarEndereco() {
+    async function buscarEndereco() {
         limparDadosVisuais();
         
         let cepInput = document.getElementById('cep');
@@ -445,9 +445,33 @@
         let logradouro = logradouroInput.value.trim();
         let numero = numeroInput.value.trim();
 
-        if (cep.length === 8 && logradouro === "") {
-            await preencherEnderecoPeloCEP(cep);
-            logradouro = logradouroInput.value;
+        let bairroOficial = "-";
+        let cidadeOficial = "São Paulo";
+        let cepOficial = "-";
+
+        if (cep.length === 8) {
+            try {
+                if (logradouro === "") logradouroInput.placeholder = "Carregando...";
+                
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await response.json();
+
+                if (!data.erro) {
+                    logradouro = data.logradouro; 
+                    logradouroInput.value = data.logradouro; // Garante que o input esteja certo
+                    
+                    bairroOficial = data.bairro;
+                    cidadeOficial = data.localidade;
+                    cepOficial = cep.replace(/^(\d{5})(\d)/, '$1-$2');
+                } else {
+                     if (logradouro === "") {
+                        alert("❌ CEP não encontrado!");
+                        return;
+                     }
+                }
+            } catch (error) {
+                console.error("Erro ViaCEP na busca:", error);
+            }
         }
 
         if (logradouro === "") {
@@ -455,9 +479,15 @@
             return;
         }
 
-        document.getElementById('res-log').innerText = `${logradouro}, ${numero}`;
+        let tituloEndereco = logradouro;
+        if (numero !== "") tituloEndereco += `, ${numero}`;
+        document.getElementById('res-log').innerText = tituloEndereco;
 
-        let query = `${logradouro}, ${numero}, São Paulo, Brazil`;
+        let query = `${logradouro}`;
+        if (numero !== "") {
+            query += `, ${numero}`;
+        }
+        query += `, ${cidadeOficial}, Brazil`;
         
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`)
             .then(response => response.json())
@@ -468,29 +498,25 @@
                     const addr = data[0].address;
 
                     
-                    if (cep.length === 8) {
-                        document.getElementById('res-cep').innerText = cep.replace(/^(\d{5})(\d)/, '$1-$2');
-                        
-                        const cidadeAtual = document.getElementById('res-cidade').innerText;
-                        if ((cidadeAtual === "-" || cidadeAtual === "") && addr) {
-                             const cidade = addr.city || addr.town || addr.municipality || "São Paulo";
-                             document.getElementById('res-cidade').innerText = cidade;
-                        }
+                    if (cep.length === 8 && bairroOficial !== "-") {
+                        document.getElementById('res-bairro').innerText = bairroOficial;
+                        document.getElementById('res-cep').innerText = cepOficial;
+                        document.getElementById('res-cidade').innerText = cidadeOficial;
                     } 
                     else if (addr) {
-                        const bairro = addr.suburb || addr.neighbourhood || addr.city_district || "-";
-                        const postal = addr.postcode || "-"; 
-                        const cidade = addr.city || addr.town || addr.municipality || "São Paulo";
+                        const bairroMapa = addr.suburb || addr.neighbourhood || addr.city_district || "-";
+                        const cepMapa = addr.postcode || "-";
+                        const cidadeMapa = addr.city || addr.town || addr.municipality || "São Paulo";
 
-                        document.getElementById('res-bairro').innerText = bairro;
-                        document.getElementById('res-cep').innerText = postal;
-                        document.getElementById('res-cidade').innerText = cidade;
+                        document.getElementById('res-bairro').innerText = bairroMapa;
+                        document.getElementById('res-cep').innerText = cepMapa;
+                        document.getElementById('res-cidade').innerText = cidadeMapa;
                     }
 
                     atualizarMapa(lat, lon, true);
                     document.getElementById('search-results').classList.remove('d-none');
                 } else {
-                    alert("Endereço não localizado no mapa. Verifique o número.");
+                    alert("Endereço não localizado no mapa. Verifique o número ou a escrita.");
                 }
             })
             .catch(error => {
@@ -703,6 +729,7 @@
 </script>
 </body>
 </html>
+
 
 
 
