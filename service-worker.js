@@ -1,4 +1,4 @@
-const CACHE_NAME = 'uvis-app-v1'; 
+const CACHE_NAME = 'uvis-app-v2'; 
 const ASSETS = [
   './',
   './index.html',
@@ -46,3 +46,4 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+
