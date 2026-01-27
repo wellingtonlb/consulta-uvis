@@ -213,9 +213,14 @@
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
 
 <script>
-    if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js').catch(err => console.log('SW falhou', err));
+            navigator.serviceWorker.register('./service-worker.js')
+                .then(reg => {
+                    console.log('Service Worker registrado!', reg);
+                    reg.update();
+                })
+                .catch(err => console.log('Falha no SW:', err));
         });
     }
 
@@ -590,5 +595,6 @@
 </script>
 </body>
 </html>
+
 
 
