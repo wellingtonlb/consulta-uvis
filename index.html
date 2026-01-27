@@ -412,6 +412,28 @@
         map.setView([-23.5505, -46.6333], 11);
     }
 
+    async function preencherEnderecoPeloCEP(cep) {
+        const logradouroInput = document.getElementById('logradouro');
+        try {
+            logradouroInput.placeholder = "Carregando...";
+            const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+            const data = await response.json();
+            if (!data.erro) {
+                logradouroInput.value = data.logradouro;
+                document.getElementById('res-bairro').innerText = data.bairro;
+                document.getElementById('res-cidade').innerText = data.localidade;
+                document.getElementById('res-cep').innerText = cep.replace(/^(\d{5})(\d)/, '$1-$2');
+                document.getElementById('numero').focus();
+            } else {
+                alert("❌ CEP não encontrado!");
+                logradouroInput.placeholder = "Nome da rua";
+            }
+        } catch (error) { 
+            console.error(error); 
+            logradouroInput.placeholder = "Nome da rua";
+        }
+    }
+    
      async function buscarEndereco() {
         limparDadosVisuais();
         
@@ -746,6 +768,7 @@
 </script>
 </body>
 </html>
+
 
 
 
