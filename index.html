@@ -106,7 +106,7 @@
             </div>
 
             <div id="search-results" class="d-none animate__animated animate__fadeIn">
-                <h6 class="fw-bold text-secondary small mb-2">RESULTADOS</h6>
+                <h6 class="fw-bold text-secondary small mb-2">ENDEREÇO LOCALIZADO</h6>
                 
                 <div class="result-row border-uvis">
                     <div style="flex: 1; min-width: 0;">
@@ -281,6 +281,7 @@
         .then(data => { geoJsonUBS = data; })
         .catch(err => console.warn("Territorios_UBS não encontrado."));
 
+
     function limparDadosVisuais() {
         document.getElementById('res-log').innerText = "-";
         document.getElementById('res-cep').innerText = "-";
@@ -368,82 +369,58 @@
         if (numero !== "") tituloEndereco += `, ${numero}`;
         document.getElementById('res-log').innerText = tituloEndereco;
 
-        const urlBase = "https://nominatim.openstreetmap.org/search?";
-        const commonParams = "&format=json&limit=1&addressdetails=1";
+        
+        
+        let query = `${logradouro}`;
+        if (numero !== "") query += `, ${numero}`;
+        
+        const cidadeAlvo = cidadeViaCEP !== "" ? cidadeViaCEP : "São Paulo";
+        query += `, ${cidadeAlvo}, Brazil`;
 
-        const processarSucesso = (data) => {
-            let lat = parseFloat(data[0].lat);
-            let lon = parseFloat(data[0].lon);
-            const addr = data[0].address;
+        const params = new URLSearchParams({
+            format: 'json',
+            limit: 1,
+            q: query,
+            addressdetails: 1
+        });
 
-            if (cep.length === 8 && bairroOficial !== "-") {
-                document.getElementById('res-bairro').innerText = bairroOficial;
-                document.getElementById('res-cep').innerText = cepOficial;
-                document.getElementById('res-cidade').innerText = cidadeViaCEP;
-            } else if (addr) {
-                const bairroMapa = addr.suburb || addr.neighbourhood || addr.city_district || "-";
-                const cepMapa = addr.postcode || "-";
-                const cidadeMapa = addr.city || addr.town || addr.municipality || "São Paulo";
-                document.getElementById('res-bairro').innerText = bairroMapa;
-                document.getElementById('res-cep').innerText = cepMapa;
-                document.getElementById('res-cidade').innerText = cidadeMapa;
-            }
-            atualizarMapa(lat, lon, true);
-            document.getElementById('search-results').classList.remove('d-none');
-        };
+        if (cidadeAlvo === "São Paulo") {
+            params.append('viewbox', '-47.20,-23.10,-46.10,-24.00'); 
+            params.append('bounded', '1'); 
+        }
 
-        if (cidadeViaCEP !== "") {
-            const paramsStruct = new URLSearchParams({
-                street: numero !== "" ? `${numero} ${logradouro}` : logradouro,
-                city: cidadeViaCEP,
-                country: 'Brazil'
+        fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.length > 0) {
+                    let lat = parseFloat(data[0].lat);
+                    let lon = parseFloat(data[0].lon);
+                    const addr = data[0].address;
+
+                    if (cep.length === 8 && bairroOficial !== "-") {
+                        document.getElementById('res-bairro').innerText = bairroOficial;
+                        document.getElementById('res-cep').innerText = cepOficial;
+                        document.getElementById('res-cidade').innerText = cidadeViaCEP;
+                    } 
+ 
+                    else if (addr) {
+                        const bairroMapa = addr.suburb || addr.neighbourhood || addr.city_district || "-";
+                        const cepMapa = addr.postcode || "-";
+                        const cidadeMapa = addr.city || addr.town || addr.municipality || "São Paulo";
+                        document.getElementById('res-bairro').innerText = bairroMapa;
+                        document.getElementById('res-cep').innerText = cepMapa;
+                        document.getElementById('res-cidade').innerText = cidadeMapa;
+                    }
+                    atualizarMapa(lat, lon, true);
+                    document.getElementById('search-results').classList.remove('d-none');
+                } else {
+                    alert("Endereço não localizado com precisão. Verifique o número.");
+                }
+            })
+            .catch(err => {
+                console.error('Erro:', err);
+                alert("Erro de conexão com o mapa.");
             });
-
-            if (cep.length === 8) paramsStruct.append('postalcode', cep);
-
-            fetch(urlBase + paramsStruct.toString() + commonParams)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.length > 0) {
-                        processarSucesso(data);
-                    } else {
-                        console.log("Busca estruturada falhou. Tentando flexível...");
-                        fazerBuscaFlexivel();
-                    }
-                })
-                .catch(err => console.error(err));
-        } else {
-            fazerBuscaFlexivel();
-        }
-
-        function fazerBuscaFlexivel() {
-            let query = `${logradouro}`;
-            if (numero !== "") query += `, ${numero}`;
-            
-            const cidadeAlvo = cidadeViaCEP !== "" ? cidadeViaCEP : "São Paulo";
-            query += `, ${cidadeAlvo}, Brazil`;
-
-            const paramsFlex = new URLSearchParams({ q: query });
-
-            if (cidadeAlvo === "São Paulo") {
-                paramsFlex.append('viewbox', '-47.20,-23.10,-46.10,-24.00'); 
-                paramsFlex.append('bounded', '1'); 
-            }
-
-            fetch(urlBase + paramsFlex.toString() + commonParams)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.length > 0) {
-                        processarSucesso(data);
-                    } else {
-                        alert("Endereço não localizado. Verifique se o número está correto.");
-                    }
-                })
-                .catch(err => {
-                    console.error('Erro:', err);
-                    alert("Erro de conexão com o mapa.");
-                });
-        }
     }
 
     function atualizarMapa(lat, lon, darZoom = false) {
