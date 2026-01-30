@@ -150,12 +150,12 @@
 
             <footer class="mt-auto py-3 text-center">
                 <div class="d-flex justify-content-center gap-3 mb-2">
-                    <a href="https://chromewebstore.google.com/detail/ohhkpccnilhbbhgeidmajpghpjgpipcc?utm_source=item-share-cb" target="_blank" class="small text-muted text-decoration-none">Extensão</a>
+                    <a href="https://chromewebstore.google.com/detail/ohhkpccnilhbbhgeidmajpghpjgpipcc?utm_source=item-share-cb" target="_blank" class="small text-muted text-decoration-none">🧩 Extensão</a>
                     <span class="text-muted small">•</span>
-                    <a href="privacidade.html" class="small text-muted text-decoration-none">Privacidade</a>
+                    <a href="privacidade.html" class="small text-muted text-decoration-none">🔒 Privacidade</a>
                 </div>
                 <div class="small">
-                    <a href="https://github.com/wellingtonlb/consulta-uvis" target="_blank" class="text-muted text-decoration-none opacity-75"></> &lt;/&gt; Código Fonte</a>
+                    <a href="https://github.com/wellingtonlb/consulta-uvis" target="_blank" class="text-muted text-decoration-none opacity-75"></> Código Fonte</a>
                 </div>
             </footer>
         </div>
@@ -208,8 +208,25 @@
         });
     }
 
-     fetch('./dados.json').then(r => r.json()).then(d => { geoJsonData = d; geoJsonLayer = L.geoJson(d, { style: styleFeature, onEachFeature: onEachFeature }).addTo(map); if(geoJsonLayer.getBounds().isValid()) map.fitBounds(geoJsonLayer.getBounds()); });
-    fetch('./Territorios_UBS.geojson').then(r => r.json()).then(d => geoJsonUBS = d).catch(console.warn);
+     fetch('./Territórios_UVIS.geojson')
+        .then(r => r.json())
+        .then(data => {
+            geoJsonData = data;
+            geoJsonLayer = L.geoJson(data, { style: styleFeature, onEachFeature: onEachFeature }).addTo(map);
+            if(geoJsonLayer.getBounds().isValid()) map.fitBounds(geoJsonLayer.getBounds());
+        })
+        .catch(err => {
+            console.error("Erro Territórios_UVIS.geojson", err);
+             fetch('./dados.json').then(r => r.json()).then(data => {
+                geoJsonData = data;
+                geoJsonLayer = L.geoJson(data, { style: styleFeature, onEachFeature: onEachFeature }).addTo(map);
+            });
+        });
+
+    fetch('./Territorios_UBS.geojson')
+        .then(r => r.json())
+        .then(data => geoJsonUBS = data)
+        .catch(console.warn);
 
      function limparDadosVisuais() {
         ['res-log','res-cep','res-bairro','res-cidade','res-uvis','res-da','res-ubs','res-email'].forEach(id => document.getElementById(id).innerText = "-");
@@ -273,9 +290,7 @@
         document.getElementById('res-log').innerText = logradouro + (numero ? `, ${numero}` : "");
 
         const processar = (data) => {
-            if (!validarResultadoGeografico(data[0], cidadeViaCEP)) {
-                 return false; 
-            }
+            if (!validarResultadoGeografico(data[0], cidadeViaCEP)) return false;
 
             let lat = parseFloat(data[0].lat);
             let lon = parseFloat(data[0].lon);
@@ -306,10 +321,10 @@
 
             fetch(url + params).then(r => r.json()).then(data => {
                 if (data.length > 0 && processar(data)) return;
-                else fazerBuscaFlexivel(logradouro, true); 
+                else fazerBuscaFlexivel(logradouro, true);
             }).catch(() => fazerBuscaFlexivel(logradouro, true));
         } else {
-            fazerBuscaFlexivel(logradouro, true);  
+            fazerBuscaFlexivel(logradouro, true);
         }
 
         function fazerBuscaFlexivel(nomeRua, tentarSanitizada) {
@@ -319,37 +334,29 @@
             q += `, ${cidadeAlvo}, Brazil`;
 
             const p = new URLSearchParams({ format: 'json', limit: 1, addressdetails: 1, q: q });
-            
-             if (cidadeAlvo === "São Paulo") {
-                p.set('viewbox', '-47.20,-23.10,-46.10,-24.00'); 
-                p.set('bounded', '1');
-            }
+            if (cidadeAlvo === "São Paulo") { p.set('viewbox', '-47.20,-23.10,-46.10,-24.00'); p.set('bounded', '1'); }
 
             fetch(url + p).then(r => r.json()).then(data => {
                 if (data.length > 0) {
-                     if (processar(data)) return;
+                    if (processar(data)) return;
                 }
                 
-                 if (tentarSanitizada) {
+                if (tentarSanitizada) {
                     const nomeLimpo = limparLogradouro(logradouro);
                     if (nomeLimpo !== logradouro && nomeLimpo.length > 3) {
                         console.log("Tentando sanitizada:", nomeLimpo);
                         fazerBuscaFlexivel(nomeLimpo, false);
-                    } else {
-                        alert("Endereço não localizado (ou fora da região permitida).");
-                    }
-                } else {
-                    alert("Endereço não localizado.");
-                }
+                    } else { alert("Endereço não localizado (ou fora da região permitida)."); }
+                } else { alert("Endereço não localizado."); }
             }).catch(() => alert("Erro de conexão."));
         }
     }
 
-     function validarResultadoGeografico(item, cidadeEsperada) {
+    function validarResultadoGeografico(item, cidadeEsperada) {
         const lat = parseFloat(item.lat);
-         if (cidadeEsperada === "" || cidadeEsperada === "São Paulo") {
-             if (lat < -24.05) {
-                console.warn("Resultado bloqueado: Fora da Grande SP (Latitude muito ao sul)", lat);
+        if (cidadeEsperada === "" || cidadeEsperada === "São Paulo") {
+            if (lat < -24.05) {
+                console.warn("Bloqueado: Fora da Grande SP", lat);
                 return false;
             }
         }
@@ -371,14 +378,32 @@
     function verificarPoligono(lat, lon) {
         if (!geoJsonData) return;
         const pt = turf.point([lon, lat]);
-        let uvis = null, achouUBS = false, nomeUBS = "Não identificada";
+        let uvisEncontrada = "Fora da área mapeada", daEncontrada = "-", emailUvis = "-", achouUBS = false, nomeUBS = "Não identificada";
 
-        turf.featureEach(geoJsonData, (f) => { if (turf.booleanPointInPolygon(pt, f)) uvis = f; });
+         turf.featureEach(geoJsonData, (f) => {
+            if (turf.booleanPointInPolygon(pt, f)) {
+                const props = f.properties;
+                exibirDetalhesRegiao(props);  
+                
+                for (const [key, val] of Object.entries(props)) {
+                    const k = key.toLowerCase();
+                    if (k.includes('uvis') && !k.includes('endereco') && !k.includes('logradouro')) {
+                        if (k.includes('nome') || k.includes('nm')) uvisEncontrada = val;
+                        else if (uvisEncontrada === "Fora da área mapeada" && isNaN(val)) uvisEncontrada = val;
+                    }
+                    if ((k.includes('da') || k.includes('distrito')) && isNaN(val)) daEncontrada = val;
+                    if (k.includes('email')) emailUvis = val;
+                }
+            }
+        });
+
         if (geoJsonUBS) turf.featureEach(geoJsonUBS, (f) => { if (turf.booleanPointInPolygon(pt, f)) { achouUBS = true; nomeUBS = (f.properties.Name || f.properties.NOME || "UBS").replace(/<[^>]*>?/gm, ''); }});
 
-        if (uvis) {
-            atualizarPainelResumo(uvis.properties);
-            exibirDetalhesRegiao(uvis.properties);
+        if (uvisEncontrada !== "Fora da área mapeada") {
+            document.getElementById('res-uvis').innerText = uvisEncontrada;
+            document.getElementById('res-da').innerText = daEncontrada;
+            document.getElementById('res-email').innerText = emailUvis;
+            
             document.getElementById('ubs-result-card').classList.remove('d-none');
             const el = document.getElementById('res-ubs');
             el.innerText = achouUBS ? nomeUBS : "Endereço em área mapeada, mas sem UBS vinculada";
@@ -389,20 +414,6 @@
             ['ubs-result-card','region-details'].forEach(id => document.getElementById(id).classList.add('d-none'));
         }
         document.getElementById('search-results').classList.remove('d-none');
-    }
-
-    function atualizarPainelResumo(p) {
-        let uvis = [], da = [], email = "-";
-        for (const [k, v] of Object.entries(p)) {
-            const key = k.toLowerCase(), val = String(v).trim();
-            if (key.includes('uvis')) uvis.push({v: val, p: (key.includes('nome')?20:0) + (isNaN(val)?10:0)});
-            if (key.includes('da') || key.includes('distrito')) da.push({v: val, p: (key.includes('nome')?30:0)});
-            if (key.includes('email')) email = val;
-        }
-        uvis.sort((a,b)=>b.p-a.p); da.sort((a,b)=>b.p-a.p);
-        document.getElementById('res-uvis').innerText = uvis[0]?.v || "-";
-        document.getElementById('res-da').innerText = da[0]?.v || "-";
-        document.getElementById('res-email').innerText = email;
     }
 
     function exibirDetalhesRegiao(p) {
