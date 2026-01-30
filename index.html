@@ -155,7 +155,7 @@
                     <a href="privacidade.html" class="small text-muted text-decoration-none">Privacidade</a>
                 </div>
                 <div class="small">
-                    <a href="https://github.com/wellingtonlb/consulta-uvis" target="_blank" class="text-muted text-decoration-none opacity-75"></> &lt;/&gt; Código Fonte</a>
+                    <a href="https://github.com/wellingtonlb/consulta-uvis" target="_blank" class="text-muted text-decoration-none opacity-75"></>&lt;/&gt; Código Fonte</a>
                 </div>
             </footer>
         </div>
@@ -208,20 +208,19 @@
         });
     }
 
-     fetch('./Territórios_UVIS.geojson')
-        .then(r => r.json())
-        .then(data => {
-            geoJsonData = data;
-            geoJsonLayer = L.geoJson(data, { style: styleFeature, onEachFeature: onEachFeature }).addTo(map);
-            if(geoJsonLayer.getBounds().isValid()) map.fitBounds(geoJsonLayer.getBounds());
-        })
-        .catch(err => {
-            console.error("Erro Territórios_UVIS.geojson", err);
-             fetch('./dados.json').then(r => r.json()).then(data => {
-                geoJsonData = data;
-                geoJsonLayer = L.geoJson(data, { style: styleFeature, onEachFeature: onEachFeature }).addTo(map);
-            });
+    
+    fetch('./Territórios_UVIS.geojson')
+        .then(r => { if(!r.ok) throw new Error(); return r.json(); })
+        .then(data => carregarUVIS(data))
+        .catch(() => {
+            fetch('./dados.json').then(r => r.json()).then(data => carregarUVIS(data)).catch(console.error);
         });
+
+    function carregarUVIS(data) {
+        geoJsonData = data;
+        geoJsonLayer = L.geoJson(data, { style: styleFeature, onEachFeature: onEachFeature }).addTo(map);
+        if(geoJsonLayer.getBounds().isValid()) map.fitBounds(geoJsonLayer.getBounds());
+    }
 
     fetch('./Territorios_UBS.geojson')
         .then(r => r.json())
@@ -313,7 +312,7 @@
         const url = "https://nominatim.openstreetmap.org/search?";
         const params = new URLSearchParams({ format: 'json', limit: 1, addressdetails: 1 });
         
-         if (cidadeViaCEP !== "") {
+        if (cidadeViaCEP !== "") {
             params.set('street', numero ? `${numero} ${logradouro}` : logradouro);
             params.set('city', cidadeViaCEP);
             params.set('country', 'Brazil');
@@ -355,10 +354,7 @@
     function validarResultadoGeografico(item, cidadeEsperada) {
         const lat = parseFloat(item.lat);
         if (cidadeEsperada === "" || cidadeEsperada === "São Paulo") {
-            if (lat < -24.05) {
-                console.warn("Bloqueado: Fora da Grande SP", lat);
-                return false;
-            }
+            if (lat < -24.05) { console.warn("Bloqueado: Fora da Grande SP", lat); return false; }
         }
         return true;
     }
@@ -383,8 +379,7 @@
          turf.featureEach(geoJsonData, (f) => {
             if (turf.booleanPointInPolygon(pt, f)) {
                 const props = f.properties;
-                exibirDetalhesRegiao(props);  
-                
+                exibirDetalhesRegiao(props); 
                 for (const [key, val] of Object.entries(props)) {
                     const k = key.toLowerCase();
                     if (k.includes('uvis') && !k.includes('endereco') && !k.includes('logradouro')) {
@@ -397,7 +392,22 @@
             }
         });
 
-        if (geoJsonUBS) turf.featureEach(geoJsonUBS, (f) => { if (turf.booleanPointInPolygon(pt, f)) { achouUBS = true; nomeUBS = (f.properties.Name || f.properties.NOME || "UBS").replace(/<[^>]*>?/gm, ''); }});
+         if (geoJsonUBS) {
+            turf.featureEach(geoJsonUBS, (f) => {
+                if (achouUBS) return; 
+                if (turf.booleanPointInPolygon(pt, f)) {
+                     const p = f.properties;
+                      for (const [key, val] of Object.entries(p)) {
+                         if (key.match(/nome|name|fantasia/i)) {
+                             nomeUBS = val;
+                             achouUBS = true;
+                             break;
+                         }
+                     }
+                      if (!achouUBS && (p.description)) { nomeUBS = p.description; achouUBS = true; }
+                }
+            });
+        }
 
         if (uvisEncontrada !== "Fora da área mapeada") {
             document.getElementById('res-uvis').innerText = uvisEncontrada;
@@ -455,4 +465,3 @@
 </script>
 </body>
 </html>
-
