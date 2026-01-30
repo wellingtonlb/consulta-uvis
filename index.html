@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consulta Território UVIS e UBS</title>
     <meta name="description" content="Localizador de UVIS, Distrito Administrativo e UBS de referência em São Paulo.">
-    
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -21,24 +20,54 @@
     <style>
         body { background-color: #f4f6f9; }
         .main-card { border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
         #map { height: 85vh; width: 100%; border-radius: 8px; border: 1px solid #dee2e6; }
-        .result-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #e9ecef; padding: 6px 10px; border-radius: 6px; margin-bottom: 6px; }
+        
+        .result-row { 
+            display: flex; align-items: center; justify-content: space-between; 
+            background: #fff; border: 1px solid #e9ecef; 
+            padding: 6px 10px; border-radius: 6px; margin-bottom: 6px;
+        }
+        
         .res-label { font-size: 0.7rem; color: #6c757d; text-transform: uppercase; font-weight: 700; display: block; }
         .res-value { font-size: 0.95rem; color: #212529; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
         .res-value-multiline { font-size: 0.85rem; color: #212529; font-weight: 600; white-space: pre-wrap; word-break: break-word; line-height: 1.4; }
-        .detail-card { background-color: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid #6610f2; }
+
+        .detail-card {
+            background-color: #fff; border: 1px solid #dee2e6; border-radius: 8px;
+            padding: 15px; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-left: 5px solid #6610f2;
+        }
         .detail-title { font-size: 0.9rem; font-weight: 700; color: #6610f2; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         .detail-content { font-size: 0.8rem; color: #333; line-height: 1.6; }
-        .btn-copy { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; width: 30px; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; margin-left: 8px; flex-shrink: 0; }
+
+        .btn-copy { 
+            background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; 
+            width: 30px; height: 30px; border-radius: 4px; display: flex; 
+            align-items: center; justify-content: center; cursor: pointer; 
+            transition: all 0.2s ease; margin-left: 8px; flex-shrink: 0;
+        }
         .btn-copy:hover { background-color: #e2e6ea; color: #0d6efd; border-color: #cbd5e0; }
         .btn-copy.copied { background-color: #198754; color: white; border-color: #198754; }
+
         .border-uvis { border-left: 3px solid #0d6efd; }
         .border-da { border-left: 3px solid #198754; }
-        #toggle-view-btn { position: fixed; bottom: 20px; right: 20px; z-index: 2000; border-radius: 50%; width: 60px; height: 60px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); display: none; font-size: 1.5rem; border: none; }
+
+        #toggle-view-btn {
+            position: fixed; bottom: 20px; right: 20px; z-index: 2000;
+            border-radius: 50%; width: 60px; height: 60px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3); display: none;
+            font-size: 1.5rem; border: none; 
+        }
+
         @media (max-width: 768px) {
             #toggle-view-btn { display: flex; align-items: center; justify-content: center; }
             footer { display: none !important; }
-            .col-md-3 { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(244, 246, 249, 0.98); z-index: 1500; padding-top: 10px; transition: transform 0.3s ease; }
+            .col-md-3 {
+                position: absolute; top: 0; left: 0; width: 100%; height: 100vh; 
+                background: rgba(244, 246, 249, 0.98); z-index: 1500;
+                padding-top: 10px; transition: transform 0.3s ease; 
+            }
             .col-md-3.hidden { display: none !important; }
         }
     </style>
@@ -48,6 +77,7 @@
 <div class="container-fluid px-3">
     <div class="row g-3">
         <div class="col-md-3 d-flex flex-column" style="max-height: 95vh; overflow-y: auto;">
+            
             <div class="text-center mb-3">
                 <h5 class="fw-bold text-primary mb-0">Localizador UVIS SP</h5>
             </div>
@@ -69,7 +99,7 @@
                         </div>
                     </div>
                     
-                    <button id="btn-buscar" class="btn btn-primary btn-sm w-100 fw-bold" onclick="buscarEndereco()">
+                    <button class="btn btn-primary btn-sm w-100 fw-bold" onclick="buscarEndereco()">
                         <i class="bi bi-search"></i> CONSULTAR
                     </button>
                     <button class="btn btn-outline-secondary btn-sm w-100 fw-bold mt-2" onclick="limparTudo()">
@@ -80,6 +110,7 @@
 
             <div id="search-results" class="d-none animate__animated animate__fadeIn">
                 <h6 class="fw-bold text-secondary small mb-2">ENDEREÇO LOCALIZADO</h6>
+                
                 <div class="result-row border-uvis">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">UVIS (Referência)</span>
@@ -87,6 +118,7 @@
                     </div>
                     <button class="btn-copy" onclick="copiar(this, 'res-uvis')">📋</button>
                 </div>
+
                 <div class="result-row border-da">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">Distrito Administrativo</span>
@@ -94,6 +126,7 @@
                     </div>
                     <button class="btn-copy" onclick="copiar(this, 'res-da')">📋</button>
                 </div>
+
                 <div id="ubs-result-card" class="d-none mb-2 p-2 bg-white border border-success rounded shadow-sm" style="border-left-width: 5px !important;">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
@@ -103,6 +136,7 @@
                         <button class="btn-copy" onclick="copiar(this, 'res-ubs')">📋</button>
                     </div>
                 </div>
+
                 <div class="result-row">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">Endereço Pesquisado</span>
@@ -110,6 +144,7 @@
                     </div>
                     <button class="btn-copy" onclick="copiar(this, 'res-log')">📋</button>
                 </div>
+
                 <div class="result-row">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">Bairro</span>
@@ -117,6 +152,7 @@
                     </div>
                     <button class="btn-copy" onclick="copiar(this, 'res-bairro')">📋</button>
                 </div>
+
                 <div class="result-row">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">CEP</span>
@@ -124,6 +160,7 @@
                     </div>
                     <button class="btn-copy" onclick="copiar(this, 'res-cep')">📋</button>
                 </div>
+
                 <div class="result-row">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">Cidade</span>
@@ -131,6 +168,7 @@
                     </div>
                     <button class="btn-copy" onclick="copiar(this, 'res-cidade')">📋</button>
                 </div>
+                
                 <div class="result-row">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">Contatos / Email</span>
@@ -158,7 +196,7 @@
                     <a href="https://github.com/wellingtonlb/consulta-uvis" target="_blank" class="text-muted text-decoration-none opacity-75"></> &lt;/&gt; Código Fonte</a>
                 </div>
             </footer>
-        </div>
+           </div>
         
         <div class="col-md-9">
             <div id="map"></div>
@@ -175,196 +213,230 @@
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
 
 <script>
-     if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js').then(reg => reg.update()).catch(console.error);
+            navigator.serviceWorker.register('./service-worker.js')
+                .then(reg => {
+                    console.log('Service Worker registrado!', reg);
+                    reg.update();
+                })
+                .catch(err => console.log('Falha no SW:', err));
         });
     }
 
     const map = L.map('map').setView([-23.5505, -46.6333], 11);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© OpenStreetMap © CARTO'
+    }).addTo(map);
 
-    let geoJsonData = null, geoJsonUBS = null, marker = null, geoJsonLayer = null;
+    let geoJsonData = null;   
+    let geoJsonUBS = null; 
+    let marker = null;
+    let geoJsonLayer = null;
 
-     const distinctColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
+    const distinctColors = [
+        '#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', 
+        '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', 
+        '#808000', '#ffd8b1', '#000075', '#808080'
+    ];
+
     function getColor(str) {
         let hash = 0;
-        for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        for (let i = 0; i < str.length; i++) { hash = str.charCodeAt(i) + ((hash << 5) - hash); }
         return distinctColors[Math.abs(hash) % distinctColors.length];
     }
+
     function styleFeature(feature) {
-        let nome = "default";
-        for (const [key, value] of Object.entries(feature.properties)) if (key.toLowerCase().includes('uvis')) { nome = value; break; }
-        return { fillColor: getColor(String(nome)), weight: 1, opacity: 1, color: '#888', fillOpacity: 0.1 };
+        let nomeParaCor = "default";
+         for (const [key, value] of Object.entries(feature.properties)) {
+            if (key.toLowerCase().includes('uvis')) { nomeParaCor = value; break; }
+        }
+        return { fillColor: getColor(String(nomeParaCor)), weight: 1, opacity: 1, color: '#888', fillOpacity: 0.1 };
+    }
+
+    function highlightFeature(e) {
+        const layer = e.target;
+        layer.setStyle({ weight: 3, color: '#666', fillOpacity: 0.3 });
+        layer.bringToFront();
+        if (marker) marker.setZIndexOffset(1000);
+    }
+    function resetHighlight(e) { geoJsonLayer.resetStyle(e.target); }
+    function onFeatureClick(e) {
+        limparDadosVisuais();
+        document.getElementById('res-log').innerText = "Selecionado no Mapa";
+        atualizarMapa(e.latlng.lat, e.latlng.lng, false);
     }
     function onEachFeature(feature, layer) {
-        let nome = "";
-        for (const [key, value] of Object.entries(feature.properties)) if (key.toLowerCase().includes('uvis')) { nome = value; break; }
-        layer.bindTooltip(nome, { permanent: false, direction: "center", className: "bg-transparent border-0 text-dark fw-bold" });
-        layer.on({
-            mouseover: (e) => { e.target.setStyle({ weight: 3, color: '#666', fillOpacity: 0.3 }); e.target.bringToFront(); if (marker) marker.setZIndexOffset(1000); },
-            mouseout: (e) => geoJsonLayer.resetStyle(e.target),
-            click: (e) => { limparDadosVisuais(); document.getElementById('res-log').innerText = "Selecionado no Mapa"; atualizarMapa(e.latlng.lat, e.latlng.lng, false); }
-        });
+        let nomeDisplay = "";
+        for (const [key, value] of Object.entries(feature.properties)) {
+            if (key.toLowerCase().includes('uvis')) { nomeDisplay = value; break; }
+        }
+        layer.bindTooltip(nomeDisplay, { permanent: false, direction: "center", className: "bg-transparent border-0 text-dark fw-bold" });
+        layer.on({ mouseover: highlightFeature, mouseout: resetHighlight, click: onFeatureClick });
     }
 
-    
-    fetch('./Territórios_UVIS.geojson')
-        .then(r => { if(!r.ok) throw new Error(); return r.json(); })
-        .then(data => carregarUVIS(data))
-        .catch(() => {
-            fetch('./dados.json').then(r => r.json()).then(data => carregarUVIS(data)).catch(console.error);
-        });
-
-    function carregarUVIS(data) {
-        geoJsonData = data;
-        geoJsonLayer = L.geoJson(data, { style: styleFeature, onEachFeature: onEachFeature }).addTo(map);
-        if(geoJsonLayer.getBounds().isValid()) map.fitBounds(geoJsonLayer.getBounds());
-    }
+    fetch('./dados.json')
+        .then(r => r.json())
+        .then(data => {
+            geoJsonData = data;
+            geoJsonLayer = L.geoJson(data, { style: styleFeature, onEachFeature: onEachFeature }).addTo(map);
+            if(geoJsonLayer.getBounds().isValid()) map.fitBounds(geoJsonLayer.getBounds());
+        })
+        .catch(err => console.error("Erro dados.json", err));
 
     fetch('./Territorios_UBS.geojson')
-        .then(r => r.json())
-        .then(data => geoJsonUBS = data)
-        .catch(console.warn);
+        .then(r => { if(!r.ok) throw new Error("404"); return r.json(); })
+        .then(data => { geoJsonUBS = data; })
+        .catch(err => console.warn("Territorios_UBS não encontrado."));
 
-     function limparDadosVisuais() {
-        ['res-log','res-cep','res-bairro','res-cidade','res-uvis','res-da','res-ubs','res-email'].forEach(id => document.getElementById(id).innerText = "-");
+
+    function limparDadosVisuais() {
+        document.getElementById('res-log').innerText = "-";
+        document.getElementById('res-cep').innerText = "-";
+        document.getElementById('res-bairro').innerText = "-";
+        document.getElementById('res-cidade').innerText = "-";
+        document.getElementById('res-uvis').innerText = "-";
+        document.getElementById('res-da').innerText = "-";
+        document.getElementById('res-ubs').innerText = "-";
+        document.getElementById('res-email').innerText = "-";
+        
         document.getElementById('search-results').classList.add('d-none');
         document.getElementById('region-details').classList.add('d-none');
         document.getElementById('ubs-result-card').classList.add('d-none');
     }
 
     function limparTudo() {
-        ['cep','logradouro','numero'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('cep').value = '';
+        document.getElementById('logradouro').value = '';
+        document.getElementById('numero').value = '';
         limparDadosVisuais();
         if (marker) { map.removeLayer(marker); marker = null; }
         map.setView([-23.5505, -46.6333], 11);
     }
 
-    function limparLogradouro(nome) {
-        const termos = ["rua", "avenida", "av\\.", "av", "travessa", "tv\\.", "tv", "alameda", "al\\.", "al", "praça", "praca", "pç", "viela", "largo", "estrada", "rodovia", "doutor", "dr\\.", "dr", "dra\\.", "dra", "professor", "prof\\.", "prof", "profa\\.", "profa", "tenente", "ten\\.", "ten", "coronel", "cel\\.", "cel", "major", "maj\\.", "maj", "capitão", "capitao", "cap\\.", "cap", "general", "gen\\.", "gen", "almirante", "alm\\.", "alm", "brigadeiro", "brig\\.", "brig", "marechal", "mar\\.", "mar", "sargento", "sgt\\.", "sgt", "governador", "gov\\.", "gov", "presidente", "pres\\.", "pres", "deputado", "dep\\.", "dep", "senador", "sen\\.", "sen", "padre", "pe\\.", "pe", "bispo", "dom", "freira", "irmã", "irma", "engenheiro", "eng\\.", "eng", "arquiteto", "arq\\.", "arq"];
-        const regex = new RegExp(`\\b(${termos.join("|")})\\b`, "gi");
-        return nome.replace(regex, "").replace(/\s+/g, " ").trim();
-    }
-
     async function preencherEnderecoPeloCEP(cep) {
+        const logradouroInput = document.getElementById('logradouro');
         try {
-            document.getElementById('logradouro').placeholder = "Buscando...";
-            const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-            const d = await r.json();
-            if (!d.erro) {
-                document.getElementById('logradouro').value = d.logradouro;
-                document.getElementById('res-bairro').innerText = d.bairro;
-                document.getElementById('res-cidade').innerText = d.localidade;
+            logradouroInput.placeholder = "Carregando...";
+            const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+            const data = await response.json();
+            if (!data.erro) {
+                logradouroInput.value = data.logradouro;
+                document.getElementById('res-bairro').innerText = data.bairro;
+                document.getElementById('res-cidade').innerText = data.localidade;
                 document.getElementById('res-cep').innerText = cep.replace(/^(\d{5})(\d)/, '$1-$2');
                 document.getElementById('numero').focus();
             } else {
                 alert("❌ CEP não encontrado!");
-                document.getElementById('logradouro').placeholder = "Nome da rua";
+                logradouroInput.placeholder = "Nome da rua";
             }
-        } catch { document.getElementById('logradouro').placeholder = "Erro"; }
+        } catch (error) { 
+            console.error(error); 
+            logradouroInput.placeholder = "Nome da rua";
+        }
     }
 
     async function buscarEndereco() {
         limparDadosVisuais();
-        let cep = document.getElementById('cep').value.replace(/\D/g, '');
-        let logradouro = document.getElementById('logradouro').value.trim();
-        let numero = document.getElementById('numero').value.trim();
-        let bairroOficial = "-", cidadeViaCEP = "", cepOficial = "-";
+        
+        let cepInput = document.getElementById('cep');
+        let logradouroInput = document.getElementById('logradouro');
+        let numeroInput = document.getElementById('numero');
+        
+        let cep = cepInput.value.replace(/\D/g, '');
+        let logradouro = logradouroInput.value.trim();
+        let numero = numeroInput.value.trim();
+
+        let bairroOficial = "-";
+        let cidadeViaCEP = ""; 
+        let cepOficial = "-";
 
         if (cep.length === 8) {
             try {
-                if (logradouro === "") document.getElementById('logradouro').placeholder = "Carregando...";
-                const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                const d = await r.json();
-                if (!d.erro) {
-                    logradouro = d.logradouro; 
-                    document.getElementById('logradouro').value = d.logradouro;
-                    bairroOficial = d.bairro; cidadeViaCEP = d.localidade; cepOficial = cep.replace(/^(\d{5})(\d)/, '$1-$2');
-                } else if (logradouro === "") { alert("❌ CEP não encontrado!"); return; }
-            } catch {}
+                if (logradouro === "") logradouroInput.placeholder = "Nome da Rua";
+                
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await response.json();
+
+                if (!data.erro) {
+                    logradouro = data.logradouro; 
+                    logradouroInput.value = data.logradouro;
+                    
+                    bairroOficial = data.bairro;
+                    cidadeViaCEP = data.localidade; 
+                    cepOficial = cep.replace(/^(\d{5})(\d)/, '$1-$2');
+                } else {
+                     if (logradouro === "") { alert("❌ CEP não encontrado!"); return; }
+                }
+            } catch (error) { console.error("Erro ViaCEP:", error); }
         }
 
         if (logradouro === "") { alert("⚠️ Digite o CEP ou o Nome da Rua."); return; }
-        document.getElementById('res-log').innerText = logradouro + (numero ? `, ${numero}` : "");
 
-        const processar = (data) => {
-            if (!validarResultadoGeografico(data[0], cidadeViaCEP)) return false;
+        let tituloEndereco = logradouro;
+        if (numero !== "") tituloEndereco += `, ${numero}`;
+        document.getElementById('res-log').innerText = tituloEndereco;
 
-            let lat = parseFloat(data[0].lat);
-            let lon = parseFloat(data[0].lon);
-            const addr = data[0].address;
-
-            if (cep.length === 8 && bairroOficial !== "-") {
-                document.getElementById('res-bairro').innerText = bairroOficial;
-                document.getElementById('res-cep').innerText = cepOficial;
-                document.getElementById('res-cidade').innerText = cidadeViaCEP;
-            } else if (addr) {
-                document.getElementById('res-bairro').innerText = addr.suburb || addr.neighbourhood || "-";
-                document.getElementById('res-cep').innerText = addr.postcode || "-";
-                document.getElementById('res-cidade').innerText = addr.city || addr.town || addr.municipality || "São Paulo";
-            }
-            atualizarMapa(lat, lon, true);
-            document.getElementById('search-results').classList.remove('d-none');
-            return true;
-        };
-
-        const url = "https://nominatim.openstreetmap.org/search?";
-        const params = new URLSearchParams({ format: 'json', limit: 1, addressdetails: 1 });
         
-        if (cidadeViaCEP !== "") {
-            params.set('street', numero ? `${numero} ${logradouro}` : logradouro);
-            params.set('city', cidadeViaCEP);
-            params.set('country', 'Brazil');
-            if(cep.length === 8) params.set('postalcode', cep);
+        
+        let query = `${logradouro}`;
+        if (numero !== "") query += `, ${numero}`;
+        
+        const cidadeAlvo = cidadeViaCEP !== "" ? cidadeViaCEP : "São Paulo";
+        query += `, ${cidadeAlvo}, Brazil`;
 
-            fetch(url + params).then(r => r.json()).then(data => {
-                if (data.length > 0 && processar(data)) return;
-                else fazerBuscaFlexivel(logradouro, true);
-            }).catch(() => fazerBuscaFlexivel(logradouro, true));
-        } else {
-            fazerBuscaFlexivel(logradouro, true);
+        const params = new URLSearchParams({
+            format: 'json',
+            limit: 1,
+            q: query,
+            addressdetails: 1
+        });
+
+        if (cidadeAlvo === "São Paulo") {
+            params.append('viewbox', '-47.20,-23.10,-46.10,-24.00'); 
+            params.append('bounded', '1'); 
         }
 
-        function fazerBuscaFlexivel(nomeRua, tentarSanitizada) {
-            let q = `${nomeRua}`;
-            if (numero !== "") q += `, ${numero}`;
-            const cidadeAlvo = cidadeViaCEP || "São Paulo";
-            q += `, ${cidadeAlvo}, Brazil`;
-
-            const p = new URLSearchParams({ format: 'json', limit: 1, addressdetails: 1, q: q });
-            if (cidadeAlvo === "São Paulo") { p.set('viewbox', '-47.20,-23.10,-46.10,-24.00'); p.set('bounded', '1'); }
-
-            fetch(url + p).then(r => r.json()).then(data => {
+        fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`)
+            .then(r => r.json())
+            .then(data => {
                 if (data.length > 0) {
-                    if (processar(data)) return;
+                    let lat = parseFloat(data[0].lat);
+                    let lon = parseFloat(data[0].lon);
+                    const addr = data[0].address;
+
+                    if (cep.length === 8 && bairroOficial !== "-") {
+                        document.getElementById('res-bairro').innerText = bairroOficial;
+                        document.getElementById('res-cep').innerText = cepOficial;
+                        document.getElementById('res-cidade').innerText = cidadeViaCEP;
+                    } 
+ 
+                    else if (addr) {
+                        const bairroMapa = addr.suburb || addr.neighbourhood || addr.city_district || "-";
+                        const cepMapa = addr.postcode || "-";
+                        const cidadeMapa = addr.city || addr.town || addr.municipality || "São Paulo";
+                        document.getElementById('res-bairro').innerText = bairroMapa;
+                        document.getElementById('res-cep').innerText = cepMapa;
+                        document.getElementById('res-cidade').innerText = cidadeMapa;
+                    }
+                    atualizarMapa(lat, lon, true);
+                    document.getElementById('search-results').classList.remove('d-none');
+                } else {
+                    alert("Endereço não localizado com precisão. Verifique o número.");
                 }
-                
-                if (tentarSanitizada) {
-                    const nomeLimpo = limparLogradouro(logradouro);
-                    if (nomeLimpo !== logradouro && nomeLimpo.length > 3) {
-                        console.log("Tentando sanitizada:", nomeLimpo);
-                        fazerBuscaFlexivel(nomeLimpo, false);
-                    } else { alert("Endereço não localizado (ou fora da região permitida)."); }
-                } else { alert("Endereço não localizado."); }
-            }).catch(() => alert("Erro de conexão."));
-        }
+            })
+            .catch(err => {
+                console.error('Erro:', err);
+                alert("Erro de conexão com o mapa.");
+            });
     }
 
-    function validarResultadoGeografico(item, cidadeEsperada) {
-        const lat = parseFloat(item.lat);
-        if (cidadeEsperada === "" || cidadeEsperada === "São Paulo") {
-            if (lat < -24.05) { console.warn("Bloqueado: Fora da Grande SP", lat); return false; }
-        }
-        return true;
-    }
-
-    function atualizarMapa(lat, lon, zoom) {
+    function atualizarMapa(lat, lon, darZoom = false) {
         if (marker) map.removeLayer(marker);
         marker = L.marker([lat, lon], { draggable: true }).addTo(map);
         marker.setZIndexOffset(1000);
-        if (zoom) map.setView([lat, lon], 17);
-        marker.on('dragend', (e) => {
+        if (darZoom) map.setView([lat, lon], 17);
+        marker.on('dragend', function(e) {
             verificarPoligono(e.target.getLatLng().lat, e.target.getLatLng().lng);
             document.getElementById('res-log').innerText = "Localização Ajustada (Pino)";
         });
@@ -373,94 +445,152 @@
 
     function verificarPoligono(lat, lon) {
         if (!geoJsonData) return;
-        const pt = turf.point([lon, lat]);
-        let uvisEncontrada = "Fora da área mapeada", daEncontrada = "-", emailUvis = "-", achouUBS = false, nomeUBS = "Não identificada";
-
-         turf.featureEach(geoJsonData, (f) => {
-            if (turf.booleanPointInPolygon(pt, f)) {
-                const props = f.properties;
-                exibirDetalhesRegiao(props); 
-                for (const [key, val] of Object.entries(props)) {
-                    const k = key.toLowerCase();
-                    if (k.includes('uvis') && !k.includes('endereco') && !k.includes('logradouro')) {
-                        if (k.includes('nome') || k.includes('nm')) uvisEncontrada = val;
-                        else if (uvisEncontrada === "Fora da área mapeada" && isNaN(val)) uvisEncontrada = val;
-                    }
-                    if ((k.includes('da') || k.includes('distrito')) && isNaN(val)) daEncontrada = val;
-                    if (k.includes('email')) emailUvis = val;
-                }
-            }
+        const ponto = turf.point([lon, lat]);
+        
+        let featureUVIS = null;
+        turf.featureEach(geoJsonData, function (feat) {
+             if (feat.geometry.type !== 'Polygon' && feat.geometry.type !== 'MultiPolygon') return;
+             if (turf.booleanPointInPolygon(ponto, feat)) featureUVIS = feat;
         });
 
-         if (geoJsonUBS) {
-            turf.featureEach(geoJsonUBS, (f) => {
-                if (achouUBS) return; 
-                if (turf.booleanPointInPolygon(pt, f)) {
-                     const p = f.properties;
-                      for (const [key, val] of Object.entries(p)) {
-                         if (key.match(/nome|name|fantasia/i)) {
-                             nomeUBS = val;
-                             achouUBS = true;
-                             break;
-                         }
-                     }
-                      if (!achouUBS && (p.description)) { nomeUBS = p.description; achouUBS = true; }
+        let nomeUBS = "Não identificada";
+        let achouUBS = false;
+        if (geoJsonUBS) {
+            turf.featureEach(geoJsonUBS, function (feat) {
+                 if (achouUBS) return;  
+                 if (feat.geometry.type !== 'Polygon' && feat.geometry.type !== 'MultiPolygon') return;
+                 if (turf.booleanPointInPolygon(ponto, feat)) {
+                     const p = feat.properties;
+                     nomeUBS = p.Name || p.name || p.NOME || p.NO_FANTASIA || p.description || "Sem Nome";
+                     nomeUBS = nomeUBS.replace(/<[^>]*>?/gm, ''); 
+                     achouUBS = true;
                 }
             });
         }
 
-        if (uvisEncontrada !== "Fora da área mapeada") {
-            document.getElementById('res-uvis').innerText = uvisEncontrada;
-            document.getElementById('res-da').innerText = daEncontrada;
-            document.getElementById('res-email').innerText = emailUvis;
+        const divUbs = document.getElementById('ubs-result-card');
+        const txtUbs = document.getElementById('res-ubs');
+        
+        if (featureUVIS) {
+            atualizarPainelResumo(featureUVIS.properties);
+            exibirDetalhesRegiao(featureUVIS.properties);
             
-            document.getElementById('ubs-result-card').classList.remove('d-none');
-            const el = document.getElementById('res-ubs');
-            el.innerText = achouUBS ? nomeUBS : "Endereço em área mapeada, mas sem UBS vinculada";
-            el.className = achouUBS ? "fw-bold text-success" : "fw-bold text-warning";
+            if (geoJsonUBS) {
+                divUbs.classList.remove('d-none');
+                if (achouUBS) {
+                    txtUbs.innerText = nomeUBS;
+                    txtUbs.className = "fw-bold text-success";
+                } else {
+                    txtUbs.innerText = "Endereço em área mapeada, mas sem UBS vinculada";
+                    txtUbs.className = "fw-bold text-warning";
+                }
+            }
         } else {
             document.getElementById('res-uvis').innerText = "Fora da área mapeada";
-            ['res-da','res-email'].forEach(id => document.getElementById(id).innerText = "-");
-            ['ubs-result-card','region-details'].forEach(id => document.getElementById(id).classList.add('d-none'));
+            document.getElementById('res-da').innerText = "-";
+            document.getElementById('res-email').innerText = "-";
+            divUbs.classList.add('d-none');
+            document.getElementById('region-details').classList.add('d-none');
         }
         document.getElementById('search-results').classList.remove('d-none');
     }
 
-    function exibirDetalhesRegiao(p) {
-        let h = "";
-        for (const [k, v] of Object.entries(p)) if (!['geometry','type','styleUrl'].includes(k)) h += `<div><strong>${k}:</strong> ${v}</div>`;
-        document.getElementById('detail-content').innerHTML = h;
+    function atualizarPainelResumo(props) {
+        let candidatosUVIS = [];
+        let candidatosDA = [];
+        let emailFinal = "-";
+        let foundSpecificEmail = false;
+
+        for (const [key, value] of Object.entries(props)) {
+            const k = key.toLowerCase();
+            const v = String(value).trim();
+            if (k.includes('uvis')) {
+                let pontos = 0;
+                if (k.includes('nome') || k.includes('nm')) pontos += 20; 
+                if (isNaN(v)) pontos += 10; 
+                candidatosUVIS.push({ valor: v, pontos: pontos });
+            }
+            if (k.includes('da') || k.includes('distrito') || k === 'nome' || k === 'ds_nome') {
+                let pontos = 0;
+                if (k.includes('da') || k.includes('distrito')) pontos += 20;
+                if (k.includes('nome') || k.includes('nm')) pontos += 30;  
+                if (k.includes('cod') || k.includes('id')) pontos -= 50;  
+                if (!isNaN(v.replace(',', '.'))) pontos -= 1000; else pontos += 50; 
+                candidatosDA.push({ valor: v, pontos: pontos });
+            }
+            if (k === 'email') { emailFinal = v; foundSpecificEmail = true; } 
+            else if (k.includes('email') && !foundSpecificEmail) { emailFinal = v; }
+        }
+
+        candidatosUVIS.sort((a, b) => b.pontos - a.pontos);
+        candidatosDA.sort((a, b) => b.pontos - a.pontos);
+        const uvisVencedora = candidatosUVIS.length > 0 ? candidatosUVIS[0].valor : "Não identificado";
+        let daVencedor = "Não identificado";
+        if (candidatosDA.length > 0) {
+            const diferente = candidatosDA.find(c => c.valor !== uvisVencedora && c.pontos > -500);
+            if (diferente) daVencedor = diferente.valor;
+            else if (candidatosDA[0].pontos > -500) daVencedor = candidatosDA[0].valor;
+        }
+
+        document.getElementById('res-uvis').innerText = uvisVencedora;
+        document.getElementById('res-da').innerText = daVencedor;
+        document.getElementById('res-email').innerText = emailFinal;
+    }
+
+    function exibirDetalhesRegiao(props) {
+        const container = document.getElementById('detail-content');
+        let htmlContent = "";
+        const ignorar = ['name', 'description', 'geometry', 'type', 'styleUrl', 'styleHash', 'styleMap', 'stroke', 'stroke-width', 'stroke-opacity', 'fill', 'fill-opacity', 'icon'];
+        for (const [key, value] of Object.entries(props)) {
+            if (!ignorar.includes(key)) htmlContent += `<div style="margin-bottom: 5px;"><strong>${key}:</strong> ${value}</div>`;
+        }
+        container.innerHTML = htmlContent;
         document.getElementById('region-details').classList.remove('d-none');
     }
 
-    function copiar(btn, id) {
-        navigator.clipboard.writeText(document.getElementById(id).innerText).then(() => {
-            let original = btn.innerHTML; btn.innerHTML = "✓"; setTimeout(() => btn.innerHTML = original, 1500);
+    function copiar(btn, elementId) {
+        const texto = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(texto).then(() => {
+            const originalHTML = btn.innerHTML;
+            btn.classList.add('copied'); btn.innerHTML = "✓";
+            setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = originalHTML; }, 1500);
         });
     }
 
     function copiarTextoDetalhes(btn) {
-        navigator.clipboard.writeText(document.getElementById('detail-content').innerText).then(() => {
-            let original = btn.innerText; btn.innerText = "Copiado!"; setTimeout(() => btn.innerText = original, 2000);
+        const texto = document.getElementById('detail-content').innerText;
+        navigator.clipboard.writeText(texto).then(() => {
+            const originalText = btn.innerText; btn.innerText = "Copiado!";
+            setTimeout(() => { btn.innerText = originalText; }, 2000);
         });
     }
 
     function alternarVisualizacao() {
-        const m = document.querySelector('.col-md-3'), b = document.getElementById('toggle-view-btn');
-        m.classList.toggle('hidden');
-        b.innerHTML = m.classList.contains('hidden') ? "📝" : "🗺️";
-        setTimeout(() => map.invalidateSize(), 200);
+        const menu = document.querySelector('.col-md-3');
+        const btn = document.getElementById('toggle-view-btn');
+        if (!menu.classList.contains('hidden')) {
+            menu.classList.add('hidden');
+            btn.innerHTML = "📝"; 
+            setTimeout(() => { map.invalidateSize(); }, 200); 
+        } else {
+            menu.classList.remove('hidden');
+            btn.innerHTML = "🗺️"; 
+        }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('logradouro').addEventListener('input', () => document.getElementById('cep').value = "");
-        document.getElementById('cep').addEventListener('input', (e) => {
-            let v = e.target.value.replace(/\D/g, '');
-            if (v.length > 5) v = v.replace(/^(\d{5})(\d)/, '$1-$2');
-            e.target.value = v;
-            if (v.replace(/\D/g, '').length === 8) preencherEnderecoPeloCEP(v.replace(/\D/g, ''));
+        document.getElementById('logradouro').addEventListener('input', function() { document.getElementById('cep').value = ""; });
+        
+        document.getElementById('cep').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 5) value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+            e.target.value = value;
+            if (value.replace(/\D/g, '').length === 8) preencherEnderecoPeloCEP(value.replace(/\D/g, ''));
         });
-        document.querySelectorAll('input').forEach(i => i.addEventListener('keypress', (e) => { if(e.key === 'Enter') buscarEndereco(); }));
+
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('keypress', function (e) { if (e.key === 'Enter') buscarEndereco(); });
+        });
     });
 </script>
 </body>
