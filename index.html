@@ -36,6 +36,7 @@
         .border-da { border-left: 3px solid #198754; }
         #toggle-view-btn { position: fixed; bottom: 20px; right: 20px; z-index: 2000; border-radius: 50%; width: 60px; height: 60px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); display: none; font-size: 1.5rem; border: none; }
         
+        /* Estilos do Modal */
         .list-group-item-action { cursor: pointer; font-size: 0.9rem; border-left: 3px solid transparent; }
         .list-group-item-action:hover { background-color: #f8f9fa; color: #0d6efd; border-left: 3px solid #0d6efd; }
         .badge-bairro { font-size: 0.7rem; background-color: #e9ecef; color: #495057; padding: 2px 6px; border-radius: 4px; margin-left: 5px; text-transform: uppercase; font-weight: 700; }
@@ -62,7 +63,8 @@
         <div class="alert alert-warning small m-2 p-2">
             <i class="bi bi-exclamation-triangle"></i> Selecione o endereço que corresponde à sua Cidade/Bairro:
         </div>
-        <div class="list-group list-group-flush" id="lista-enderecos"></div>
+        <div class="list-group list-group-flush" id="lista-enderecos">
+            </div>
       </div>
     </div>
   </div>
@@ -71,6 +73,7 @@
 <div class="container-fluid px-3">
     <div class="row g-3">
         <div class="col-md-3 d-flex flex-column" style="max-height: 95vh; overflow-y: auto;">
+            
             <div class="text-center mb-3">
                 <h5 class="fw-bold text-primary mb-0">Localizador UVIS SP</h5>
             </div>
@@ -103,6 +106,7 @@
 
             <div id="search-results" class="d-none animate__animated animate__fadeIn">
                 <h6 class="fw-bold text-secondary small mb-2">ENDEREÇO LOCALIZADO</h6>
+                
                 <div class="result-row border-uvis">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">UVIS (Referência)</span>
@@ -110,6 +114,7 @@
                     </div>
                     <button class="btn-copy" onclick="copiar(this, 'res-uvis')">📋</button>
                 </div>
+
                 <div class="result-row border-da">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">Distrito Administrativo</span>
@@ -117,6 +122,7 @@
                     </div>
                     <button class="btn-copy" onclick="copiar(this, 'res-da')">📋</button>
                 </div>
+
                 <div id="ubs-result-card" class="d-none mb-2 p-2 bg-white border border-success rounded shadow-sm" style="border-left-width: 5px !important;">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
@@ -126,6 +132,7 @@
                         <button class="btn-copy" onclick="copiar(this, 'res-ubs')">📋</button>
                     </div>
                 </div>
+
                 <div class="result-row">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">Endereço Pesquisado</span>
@@ -133,6 +140,7 @@
                     </div>
                     <button class="btn-copy" onclick="copiar(this, 'res-log')">📋</button>
                 </div>
+
                 <div class="result-row">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">Bairro</span>
@@ -140,6 +148,7 @@
                     </div>
                     <button class="btn-copy" onclick="copiar(this, 'res-bairro')">📋</button>
                 </div>
+
                 <div class="result-row">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">CEP</span>
@@ -147,6 +156,7 @@
                     </div>
                     <button class="btn-copy" onclick="copiar(this, 'res-cep')">📋</button>
                 </div>
+
                 <div class="result-row">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">Cidade</span>
@@ -154,6 +164,7 @@
                     </div>
                     <button class="btn-copy" onclick="copiar(this, 'res-cidade')">📋</button>
                 </div>
+                
                 <div class="result-row">
                     <div style="flex: 1; min-width: 0;">
                         <span class="res-label">Contatos / Email</span>
@@ -173,7 +184,7 @@
 
             <footer class="mt-auto py-3 text-center">
                 <div class="d-flex justify-content-center gap-3 mb-2">
-                    <a href="https://chromewebstore.google.com/detail/ohhkpccnilhbbhgeidmajpghpjgpipcc?utm_source=item-share-cb" target="_blank" class="small text-muted text-decoration-none"> Extensão</a>
+                    <a href="https://chromewebstore.google.com/detail/ohhkpccnilhbbhgeidmajpghpjgpipcc?utm_source=item-share-cb" target="_blank" class="small text-muted text-decoration-none">  Extensão</a>
                     <span class="text-muted small">•</span>
                     <a href="privacidade.html" class="small text-muted text-decoration-none"> Privacidade</a>
                 </div>
@@ -181,7 +192,7 @@
                     <a href="https://github.com/wellingtonlb/consulta-uvis" target="_blank" class="text-muted text-decoration-none opacity-75"></> &lt;/&gt; Código Fonte</a>
                 </div>
             </footer>
-        </div>
+           </div>
         
         <div class="col-md-9">
             <div id="map"></div>
@@ -194,10 +205,12 @@
 
 <button id="toggle-view-btn" class="btn btn-primary" onclick="alternarVisualizacao()">🗺️</button>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
 
 <script>
+    // --- 1. CONFIGURAÇÃO ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js').then(reg => reg.update()).catch(console.error);
@@ -210,6 +223,7 @@
     let geoJsonData = null, geoJsonUBS = null, marker = null, geoJsonLayer = null;
     let modalSelecao = null; 
 
+    // --- 2. ESTILOS ---
     const distinctColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
     function getColor(str) {
         let hash = 0;
@@ -232,14 +246,31 @@
         });
     }
 
-    fetch('./Territórios_UVIS.geojson').then(r => { if(!r.ok) throw new Error("404"); return r.json(); }).then(data => carregarUVIS(data)).catch(() => { fetch('./dados.json').then(r => r.json()).then(data => carregarUVIS(data)).catch(console.error); });
-    function carregarUVIS(data) { geoJsonData = data; geoJsonLayer = L.geoJson(data, { style: styleFeature, onEachFeature: onEachFeature }).addTo(map); if(geoJsonLayer.getBounds().isValid()) map.fitBounds(geoJsonLayer.getBounds()); }
+    // --- 3. DADOS ---
+    fetch('./Territórios_UVIS.geojson')
+        .then(r => { if(!r.ok) throw new Error("404"); return r.json(); })
+        .then(data => carregarUVIS(data))
+        .catch(() => {
+            fetch('./dados.json').then(r => r.json()).then(data => carregarUVIS(data)).catch(console.error);
+        });
+
+    function carregarUVIS(data) {
+        geoJsonData = data;
+        geoJsonLayer = L.geoJson(data, { style: styleFeature, onEachFeature: onEachFeature }).addTo(map);
+        if(geoJsonLayer.getBounds().isValid()) map.fitBounds(geoJsonLayer.getBounds());
+    }
+
     fetch('./Territorios_UBS.geojson').then(r => r.json()).then(data => geoJsonUBS = data).catch(console.warn);
- 
+
+    // ============================================================
+    //  LÓGICA DE BUSCA V9: CORREÇÃO DO CEP SUMIDO
+    // ============================================================
 
     function limparDadosVisuais() {
         ['res-log','res-cep','res-bairro','res-cidade','res-uvis','res-da','res-ubs','res-email'].forEach(id => document.getElementById(id).innerText = "-");
-        ['search-results','region-details','ubs-result-card'].forEach(id => document.getElementById(id).classList.add('d-none'));
+        document.getElementById('search-results').classList.add('d-none');
+        document.getElementById('region-details').classList.add('d-none');
+        document.getElementById('ubs-result-card').classList.add('d-none');
     }
 
     function limparTudo() {
@@ -255,13 +286,15 @@
         return nome.replace(regex, "").replace(/\s+/g, " ").trim();
     }
 
-    function obterCidade(addr) { return addr.city || addr.town || addr.municipality || addr.village || addr.county || "São Paulo"; }
+    function obterCidade(addr) {
+        return addr.city || addr.town || addr.municipality || addr.village || addr.county || "São Paulo";
+    }
 
     async function preencherEnderecoPeloCEP(cep) {
         const logradouroInput = document.getElementById('logradouro');
         try {
             logradouroInput.placeholder = "Carregando...";
-             const response = await fetch(`https://viacep.com.br/ws/${cep}/json/?_=${new Date().getTime()}`);
+            const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
             const data = await response.json();
             if (!data.erro) {
                 logradouroInput.value = data.logradouro;
@@ -277,17 +310,17 @@
     }
 
     async function buscarEndereco() {
-        limparDadosVisuais(); 
-        
+        limparDadosVisuais();
         let cepInputVal = document.getElementById('cep').value.replace(/\D/g, '');
         let logradouro = document.getElementById('logradouro').value.trim();
         let numero = document.getElementById('numero').value.trim();
+
         let bairroOficial = "-", cidadeViaCEP = "", cepOficial = "-";
 
         if (cepInputVal.length === 8) {
             try {
                 if (logradouro === "") document.getElementById('logradouro').placeholder = "Carregando...";
-                const response = await fetch(`https://viacep.com.br/ws/${cepInputVal}/json/?_=${new Date().getTime()}`);
+                const response = await fetch(`https://viacep.com.br/ws/${cepInputVal}/json/`);
                 const data = await response.json();
                 if (!data.erro) {
                     logradouro = data.logradouro; 
@@ -300,16 +333,18 @@
         }
 
         if (logradouro === "") { alert("⚠️ Digite o CEP ou o Nome da Rua."); return; }
-        
-         document.getElementById('res-log').innerText = "Buscando no mapa...";
+        document.getElementById('res-log').innerText = logradouro + (numero ? `, ${numero}` : "");
 
         const urlBase = "https://nominatim.openstreetmap.org/search?";
         const commonParams = "&format=json&limit=15&addressdetails=1&email=wellingtonlb22@outlook.com";
 
         const processarResultados = (data) => {
+            // 1. Filtra por Latitude (Anti-Litoral Sul, mas permite Guarulhos)
             let validos = data.filter(item => validarResultadoGeografico(item, cidadeViaCEP));
+
             if (validos.length === 0) return false;
 
+            // 2. FILTRO DE BAIRRO
             if (bairroOficial !== "-" && bairroOficial !== "") {
                 const validosNoBairro = validos.filter(item => {
                     const addr = item.address || {};
@@ -320,6 +355,7 @@
                 if (validosNoBairro.length > 0) validos = validosNoBairro;
             }
 
+            // 3. PRIORIDADE NÚMERO
             if (numero !== "") {
                 const comNumero = validos.filter(item => item.address && item.address.house_number === numero);
                 if (comNumero.length > 0) {
@@ -328,24 +364,41 @@
                 }
             }
 
+            // 4. DEDUPLICAÇÃO
             const unicos = [];
             const seen = new Set();
             validos.forEach(item => {
                 const addr = item.address || {};
                 const bairro = addr.suburb || addr.neighbourhood || addr.city_district || "";
                 const cidade = obterCidade(addr);
-                const chaveUnica = (item.display_name.split(',')[0] + bairro + cidade).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '');
-                if (!seen.has(chaveUnica)) { seen.add(chaveUnica); unicos.push(item); }
+                
+                const chaveUnica = (item.display_name.split(',')[0] + bairro + cidade)
+                    .toLowerCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, "")
+                    .replace(/\s+/g, '');
+
+                if (!seen.has(chaveUnica)) {
+                    seen.add(chaveUnica);
+                    unicos.push(item);
+                }
             });
 
-            if (unicos.length === 1) carregarResultadoNoMapa(unicos[0]);
-            else mostrarModalSelecao(unicos);
+            if (unicos.length === 1) {
+                carregarResultadoNoMapa(unicos[0]);
+            } else {
+                mostrarModalSelecao(unicos);
+            }
             return true;
         };
 
         if (cidadeViaCEP !== "") {
-            const paramsStruct = new URLSearchParams({ street: numero !== "" ? `${numero} ${logradouro}` : logradouro, city: cidadeViaCEP, country: 'Brazil' });
+            const paramsStruct = new URLSearchParams({
+                street: numero !== "" ? `${numero} ${logradouro}` : logradouro,
+                city: cidadeViaCEP,
+                country: 'Brazil'
+            });
             if(cepInputVal.length === 8) paramsStruct.append('postalcode', cepInputVal);
+
             fetch(urlBase + paramsStruct.toString() + commonParams)
                 .then(r => r.json())
                 .then(data => {
@@ -362,17 +415,22 @@
             if (numero !== "") q += `, ${numero}`;
             const cidadeAlvo = cidadeViaCEP || "São Paulo";
             q += `, ${cidadeAlvo}, Brazil`;
+
             const p = new URLSearchParams({ q: q });
             if (cidadeAlvo === "São Paulo") { p.set('viewbox', '-47.20,-23.10,-46.10,-24.00'); p.set('bounded', '1'); }
 
             fetch(urlBase + p.toString() + commonParams)
                 .then(r => r.json())
                 .then(data => {
-                    if (data.length > 0) { if (processarResultados(data)) return; }
+                    if (data.length > 0) {
+                        if (processarResultados(data)) return;
+                    }
+                    
                     if (permitirSanitizacao) {
                         const nomeLimpo = limparLogradouro(logradouro);
-                        if (nomeLimpo !== logradouro && nomeLimpo.length > 3) fazerBuscaFlexivel(nomeLimpo, false);
-                        else alert("Endereço não localizado.");
+                        if (nomeLimpo !== logradouro && nomeLimpo.length > 3) {
+                            fazerBuscaFlexivel(nomeLimpo, false);
+                        } else { alert("Endereço não localizado."); }
                     } else { alert("Endereço não localizado."); }
                 })
                 .catch(() => alert("Erro de conexão."));
@@ -383,14 +441,11 @@
             let lon = parseFloat(item.lon);
             const addr = item.address;
 
-             const ruaMapa = addr.road || addr.street || item.display_name.split(',')[0];
-            const numMapa = addr.house_number || numero || "";
-            document.getElementById('res-log').innerText = ruaMapa + (numMapa ? `, ${numMapa}` : "");
-
             const bairroMapa = addr.suburb || addr.neighbourhood || addr.city_district || "-";
             const cidadeMapa = obterCidade(addr);
             
-             let cepInputVal = document.getElementById('cep').value.replace(/\D/g, '');
+            // LÓGICA DE CEP CORRIGIDA: Prioriza mapa, fallback para input
+            let cepInputVal = document.getElementById('cep').value.replace(/\D/g, '');
             let cepFormatado = cepInputVal.length === 8 ? cepInputVal.replace(/^(\d{5})(\d)/, '$1-$2') : "";
             let cepFinal = addr.postcode || cepFormatado || "-";
 
@@ -425,13 +480,12 @@
             btn.onclick = () => {
                 const m = bootstrap.Modal.getInstance(document.getElementById('modalSelecao'));
                 m.hide();
-                 const a = item.address || {};
-                const ruaEscolhida = a.road || a.street || item.display_name.split(',')[0];
-                const numEscolhido = a.house_number || document.getElementById('numero').value || "";
-                document.getElementById('res-log').innerText = ruaEscolhida + (numEscolhido ? `, ${numEscolhido}` : "");
+                
+                const a = item.address || {};
                 document.getElementById('res-bairro').innerText = a.suburb || a.neighbourhood || "-";
                 document.getElementById('res-cidade').innerText = obterCidade(a);
                 
+                // CORREÇÃO DO CEP NO MODAL
                 let cepInputVal = document.getElementById('cep').value.replace(/\D/g, '');
                 let cepFormatado = cepInputVal.length === 8 ? cepInputVal.replace(/^(\d{5})(\d)/, '$1-$2') : "";
                 document.getElementById('res-cep').innerText = a.postcode || cepFormatado || "-";
@@ -448,7 +502,9 @@
 
     function validarResultadoGeografico(item, cidadeEsperada) {
         const lat = parseFloat(item.lat);
-        if (cidadeEsperada === "" || cidadeEsperada === "São Paulo") { if (lat < -24.05) return false; }
+        if (cidadeEsperada === "" || cidadeEsperada === "São Paulo") {
+            if (lat < -24.05) return false;
+        }
         return true;
     }
 
