@@ -56,12 +56,12 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-light py-2">
-        <h6 class="modal-title fw-bold text-primary">📍 Selecione o endereço correto</h6>
+        <h6 class="modal-title fw-bold text-primary">📍 Encontramos opções similares</h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body p-0">
         <div class="alert alert-warning small m-2 p-2">
-            <i class="bi bi-exclamation-triangle"></i> O número exato não foi localizado no mapa. Selecione o trecho da rua que corresponde ao seu bairro:
+            <i class="bi bi-exclamation-triangle"></i> Selecione o endereço que corresponde à sua Cidade/Bairro:
         </div>
         <div class="list-group list-group-flush" id="lista-enderecos">
             </div>
@@ -189,7 +189,7 @@
                     <a href="privacidade.html" class="small text-muted text-decoration-none"> Privacidade</a>
                 </div>
                 <div class="small">
-                    <a href="https://github.com/wellingtonlb/consulta-uvis" target="_blank" class="text-muted text-decoration-none opacity-75"></>  &lt;/&gt; Código Fonte</a>
+                    <a href="https://github.com/wellingtonlb/consulta-uvis" target="_blank" class="text-muted text-decoration-none opacity-75"></> &lt;/&gt; Código Fonte</a>
                 </div>
             </footer>
            </div>
@@ -220,7 +220,7 @@
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap © CARTO' }).addTo(map);
 
     let geoJsonData = null, geoJsonUBS = null, marker = null, geoJsonLayer = null;
-    let modalSelecao = null;  
+    let modalSelecao = null; 
 
      const distinctColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080'];
     function getColor(str) {
@@ -258,7 +258,8 @@
     }
 
     fetch('./Territorios_UBS.geojson').then(r => r.json()).then(data => geoJsonUBS = data).catch(console.warn);
- 
+
+    
 
     function limparDadosVisuais() {
         ['res-log','res-cep','res-bairro','res-cidade','res-uvis','res-da','res-ubs','res-email'].forEach(id => document.getElementById(id).innerText = "-");
@@ -280,7 +281,11 @@
         return nome.replace(regex, "").replace(/\s+/g, " ").trim();
     }
 
-     async function preencherEnderecoPeloCEP(cep) {
+     function obterCidade(addr) {
+        return addr.city || addr.town || addr.municipality || addr.village || addr.county || "São Paulo";
+    }
+
+    async function preencherEnderecoPeloCEP(cep) {
         const logradouroInput = document.getElementById('logradouro');
         try {
             logradouroInput.placeholder = "Carregando...";
@@ -299,7 +304,7 @@
         } catch { logradouroInput.placeholder = "Nome da rua"; }
     }
 
-     async function buscarEndereco() {
+    async function buscarEndereco() {
         limparDadosVisuais();
         let cepInput = document.getElementById('cep');
         let logradouroInput = document.getElementById('logradouro');
@@ -320,7 +325,7 @@
                     logradouro = data.logradouro; 
                     logradouroInput.value = data.logradouro;
                     bairroOficial = data.bairro;
-                    bairroViaCEP = data.bairro;  
+                    bairroViaCEP = data.bairro; 
                     cidadeViaCEP = data.localidade; 
                     cepOficial = cep.replace(/^(\d{5})(\d)/, '$1-$2');
                 } else if (logradouro === "") { alert("❌ CEP não encontrado!"); return; }
@@ -331,49 +336,53 @@
         document.getElementById('res-log').innerText = logradouro + (numero ? `, ${numero}` : "");
 
         const urlBase = "https://nominatim.openstreetmap.org/search?";
-        const commonParams = "&format=json&limit=10&addressdetails=1&email=wellingtonlb22@outlook.com";
+        const commonParams = "&format=json&limit=15&addressdetails=1&email=wellingtonlb22@outlook.com";
 
-         const processarResultados = (data) => {
+        const processarResultados = (data) => {
              let validos = data.filter(item => validarResultadoGeografico(item, cidadeViaCEP));
 
             if (validos.length === 0) return false;
 
-           
-            if (bairroViaCEP !== "") {
+             if (bairroViaCEP !== "") {
                 const validosNoBairro = validos.filter(item => {
                     const addr = item.address || {};
-                    const texto = (JSON.stringify(addr) + item.display_name).toLowerCase();
-                    return texto.includes(bairroViaCEP.toLowerCase());
+                    const texto = (JSON.stringify(addr) + item.display_name).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+                    const bairroBusca = bairroViaCEP.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+                    return texto.includes(bairroBusca);
                 });
-                
-                 if (validosNoBairro.length > 0) validos = validosNoBairro;
+                if (validosNoBairro.length > 0) validos = validosNoBairro;
             }
 
              if (numero !== "") {
                 const comNumero = validos.filter(item => item.address && item.address.house_number === numero);
                 if (comNumero.length > 0) {
-                    carregarResultadoNoMapa(comNumero[0]);  
+                    carregarResultadoNoMapa(comNumero[0]); 
                     return true;
                 }
             }
 
-             if (validos.length === 1) {
-                carregarResultadoNoMapa(validos[0]);
-            } else {
-                 const unicos = [];
-                const seen = new Set();
-                validos.forEach(item => {
-                    const addr = item.address || {};
-                    const bairro = addr.suburb || addr.neighbourhood || addr.city_district || "";
-                    const key = (item.display_name.split(',')[0] + bairro).toLowerCase();  
-                    if (!seen.has(key)) {
-                        seen.add(key);
-                        unicos.push(item);
-                    }
-                });
+             const unicos = [];
+            const seen = new Set();
+            validos.forEach(item => {
+                const addr = item.address || {};
+                const bairro = addr.suburb || addr.neighbourhood || addr.city_district || "";
+                const cidade = obterCidade(addr);  
                 
-                 if (unicos.length === 1) carregarResultadoNoMapa(unicos[0]);
-                else mostrarModalSelecao(unicos);
+                const chaveUnica = (item.display_name.split(',')[0] + bairro + cidade)
+                    .toLowerCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, "")
+                    .replace(/\s+/g, '');
+
+                if (!seen.has(chaveUnica)) {
+                    seen.add(chaveUnica);
+                    unicos.push(item);
+                }
+            });
+
+            if (unicos.length === 1) {
+                carregarResultadoNoMapa(unicos[0]);
+            } else {
+                mostrarModalSelecao(unicos);
             }
             return true;
         };
@@ -428,15 +437,19 @@
             let lon = parseFloat(item.lon);
             const addr = item.address;
 
-            if (cep.length === 8 && bairroOficial !== "-") {
+             const bairroMapa = addr.suburb || addr.neighbourhood || addr.city_district || "-";
+             const cidadeMapa = obterCidade(addr); 
+            
+             if (cep.length === 8 && bairroOficial !== "-") {
                 document.getElementById('res-bairro').innerText = bairroOficial;
                 document.getElementById('res-cep').innerText = cepOficial;
                 document.getElementById('res-cidade').innerText = cidadeViaCEP;
-            } else if (addr) {
-                document.getElementById('res-bairro').innerText = addr.suburb || addr.neighbourhood || "-";
-                document.getElementById('res-cep').innerText = addr.postcode || (cep.length === 8 ? cep.replace(/^(\d{5})(\d)/, '$1-$2') : "-"); 
-                document.getElementById('res-cidade').innerText = addr.city || addr.town || "São Paulo";
+            } else {
+                document.getElementById('res-bairro').innerText = bairroMapa;
+                document.getElementById('res-cidade').innerText = cidadeMapa;
+                document.getElementById('res-cep').innerText = addr.postcode || (cep.length === 8 ? cep.replace(/^(\d{5})(\d)/, '$1-$2') : "-");
             }
+            
             atualizarMapa(lat, lon, true);
             document.getElementById('search-results').classList.remove('d-none');
         }
@@ -449,19 +462,22 @@
             const addr = item.address || {};
             const rua = addr.road || addr.street || item.display_name.split(',')[0];
             const bairro = addr.suburb || addr.neighbourhood || addr.city_district || "Bairro não informado";
+             const cidade = obterCidade(addr);
             const num = addr.house_number ? `<span class="badge-numero">Nº ${addr.house_number}</span>` : "";
             
             const btn = document.createElement('button');
             btn.className = "list-group-item list-group-item-action";
-            btn.innerHTML = `<div class="fw-bold">${num} ${rua}</div><div class="small text-muted"><span class="badge-bairro">${bairro}</span></div>`;
+            btn.innerHTML = `<div class="fw-bold">${num} ${rua}</div><div class="small text-muted"><span class="badge-bairro">${bairro}</span> - ${cidade}</div>`;
             btn.onclick = () => {
                 const m = bootstrap.Modal.getInstance(document.getElementById('modalSelecao'));
                 m.hide();
-                 let lat = parseFloat(item.lat), lon = parseFloat(item.lon);
+                
                  const a = item.address || {};
                 document.getElementById('res-bairro').innerText = a.suburb || a.neighbourhood || "-";
-                 if(document.getElementById('cep').value === "") document.getElementById('res-cep').innerText = a.postcode || "-";
+                document.getElementById('res-cidade').innerText = obterCidade(a);  
+                if(document.getElementById('cep').value === "") document.getElementById('res-cep').innerText = a.postcode || "-";
                 
+                let lat = parseFloat(item.lat), lon = parseFloat(item.lon);
                 atualizarMapa(lat, lon, true);
                 document.getElementById('search-results').classList.remove('d-none');
             };
