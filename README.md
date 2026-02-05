@@ -49,7 +49,6 @@ Ao clicar sobre qualquer área colorida do mapa, uma ficha técnica completa é 
 * **[Turf.js](https://turfjs.org/)** (Análise geoespacial e verificação de polígonos)
 * **APIs:** ViaCEP e Nominatim (OSM)
 
-**[Acesse o repositório da Extensão da Chrome Web Store clicando aqui](https://github.com/wellingtonlb/consulta-uvis/)**
 ---
 
 ## Como Executar Localmente
