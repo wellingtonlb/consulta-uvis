@@ -319,7 +319,7 @@
         const queryEncoded = encodeURIComponent(query);
 
     
-        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${queryEncoded}.json?access_token=${mapboxToken}&country=br&proximity=-46.6333,-23.5505&types=address&limit=1`;
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${queryEncoded}.json?access_token=${mapboxToken}&country=br&proximity=-46.6333,-23.5505&types=address,poi&limit=1`;
 
         try {
             const response = await fetch(url);
@@ -575,4 +575,5 @@
 </script>
 </body>
 </html>
+
 
